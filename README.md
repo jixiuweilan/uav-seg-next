@@ -16,14 +16,17 @@ Its method suggestions are suggestions, not project results or required choices.
 
 ## Scope of this starting point
 
-Only documents, source provenance and split references are versioned. No model,
-training loop, inference engine, dependency stack or runtime tests exist yet.
+Only documents, source provenance and split references are versioned. The
+[independent minimal design](docs/independent-design.md) is recorded for owner
+review. No model, training loop, inference engine, dependency stack or runtime
+tests exist yet.
 The local branch is `dev`; there is no remote or upstream. No code from an
 earlier implementation has been copied. Raw data stays outside the repository.
 
-Next: prepare and commit an independent minimal design. Implementation and
-training are later phases; stronger Agent capability is not itself evidence
-that a rewrite will be faster or more accurate.
+Next: review the independent design and release the first CPU audit/format
+increment if accepted. Implementation and training are later phases; stronger
+Agent capability is not itself evidence that a rewrite will be faster or more
+accurate.
 
 ## Local setup and checks
 
