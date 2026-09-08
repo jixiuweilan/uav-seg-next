@@ -1,0 +1,74 @@
+{
+  "date": "2026-09-08",
+  "files": 14514,
+  "counts_by_folder": {
+    "Examples/images": 11,
+    "Examples/masks": 11,
+    "test_1/images": 500,
+    "train/images": 6996,
+    "train/masks": 6996
+  },
+  "inventory_sha256": "6554c128cf0b1bd566a0088a22000b0fbd0f73e2d00b0dad0e106d7f0d783914",
+  "audit_script_sha256": "820672ae3a40b82ff7dce47d227baaf7332f38e840e92c2d60abf67dc7672d15",
+  "decode_errors": [],
+  "unexpected_sizes": [],
+  "modes_by_folder": {
+    "Examples/images": {
+      "RGB": 11
+    },
+    "Examples/masks": {
+      "L": 11
+    },
+    "test_1/images": {
+      "RGB": 500
+    },
+    "train/images": {
+      "RGB": 6996
+    },
+    "train/masks": {
+      "L": 6996
+    }
+  },
+  "invalid_label_files": [],
+  "train_pixel_counts": {
+    "1": 2026922868,
+    "2": 1322537272,
+    "3": 645526498,
+    "5": 132748857,
+    "6": 2082563464,
+    "4": 455228715,
+    "7": 514001335,
+    "8": 56676628,
+    "0": 99632059
+  },
+  "splits": {
+    "train": {
+      "count": 6297,
+      "unique_count": 6297,
+      "sha256": "2eb0d09238569cf45bc4f82c90121c1da36e45cf1b5985edec27ae139ff24ffb"
+    },
+    "val": {
+      "count": 699,
+      "unique_count": 699,
+      "sha256": "455d6ca7a1a2a5226806b8aeb94b773ae629eb147a8a8342bda9b2730f885b17"
+    },
+    "train_all": {
+      "count": 6996,
+      "unique_count": 6996,
+      "sha256": "706657a2eda0fe678e6c2a3aa382e4759a52b573ecaeecf3e8bc4554cd1b2257"
+    }
+  },
+  "train_val_id_overlap": [],
+  "pairing_equal": true,
+  "split_union_matches_images": true,
+  "train_all_matches_images": true,
+  "exact_pixel_duplicate_groups": [],
+  "cross_split_exact_pixel_duplicates": [],
+  "not_checked": [
+    "near duplicates",
+    "same-scene leakage",
+    "annotation correctness",
+    "source flight provenance",
+    "train-test overlap"
+  ]
+}

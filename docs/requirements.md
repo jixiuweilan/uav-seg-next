@@ -1,0 +1,64 @@
+# Requirements and Open Decisions
+
+Source: the [preserved organizer document](official/无人机低空航拍图像语义分割.md).
+This is a local source snapshot, not confirmation of current portal notices.
+
+## Source-derived requirements
+
+- Semantic segmentation of 1024 x 1024 RGB aerial patches using official
+  competition data only. Training collection: 6,996 labeled images. The source
+  describes Test 1/2/3 collections of 500/1,300/1,794 images.
+- Label IDs: 0 Ignore, 1 Background, 2 Building, 3 Road, 4 Water, 5 Barren,
+  6 Forest/Vegetation, 7 Agricultural, 8 Vehicle.
+- Metric: mean class IoU excluding Ignore. Specify the treatment of predictions
+  of 0 at non-ignore GT and absent-class aggregation before implementing the
+  evaluator; the snapshot does not fully specify these edge cases.
+- Public academic pretrained weights may be fine-tuned. Additional data,
+  commercial closed-model APIs, multiple-model ensembles and test-data overlap
+  in pretraining are prohibited by the source. Check source and weight licenses
+  independently for any selected candidate before use.
+- Output: same input filenames, 1024 x 1024 single-channel grayscale PNG,
+  IDs 0--8, no RGB or palette PNG, packaged in one ZIP. The snapshot does not
+  spell out all ZIP-layout details; resolve ambiguity before submission.
+- Later stages require reproducible training/validation code, environment and
+  operating instructions, a Docker deliverable and a technical PDF. Verify
+  stage-specific notices before an actual submission.
+
+## Owner constraints (not additional organizer quotations)
+
+- One model and one checkpoint; no checkpoint/seed averaging.
+- This machine is for code and CPU audits only; training is separately
+  authorized and started by the owner on the execution machine.
+- Independent foundations are to be written afresh; this initial phase ends
+  with a fact-only starting point, not a training framework or trained model.
+- Keep the independent design small and decision-oriented. Preserve raw data,
+  provenance and reproducibility; do not preselect an architecture from history.
+
+## Data-quality capability required in the subsequent design
+
+1. Check corruption, dimensions, pairing and IDs. Version manifests and splits.
+2. Screen exact/near duplicates and same-scene or consecutive-frame leakage.
+   Keep group provenance and a frozen group-aware validation holdout when
+   feasible; do not claim that disjoint filenames guarantee independence.
+3. Rank annotation suspicion using prediction/GT disagreement, alignment,
+   class confusion, missing-region and boundary signals. Prefer held-out or
+   out-of-fold predictions to avoid training-fit bias. Disagreement is a
+   review cue, not ground truth or a deletion rule.
+4. Review high-risk samples manually, with a sampled low-risk control to assess
+   missed issues. Record confirmed versus rejected suspicions. Correct only
+   confirmed errors with an annotation tool if needed; preserve original and
+   corrected masks, reviewer decisions, hashes and data-version identity.
+5. Audit annotation/split changes separately from model changes. Do not clean a
+   validation set based on which labels make the candidate score better; freeze
+   evaluation labels and keep test information out of the correction decision.
+
+These are requested future capabilities, not completed checks. No annotation
+service or additional software installation is authorized by this document.
+
+## Initial implementation acceptance design
+
+Define hand-checkable confusion-matrix/ignore tests; paired geometric transforms
+and nearest-neighbor mask resizing; leakage and invalid-data fixtures; exact
+submission round-trip tests; deterministic manifest/config/checkpoint identity;
+and equivalent-workload speed/memory measurements once a runtime exists.
+Choose only enough infrastructure to validate a first end-to-end baseline.
