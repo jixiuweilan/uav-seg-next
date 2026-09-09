@@ -54,8 +54,11 @@ This is a local source snapshot, not confirmation of current portal notices.
    evaluation labels and keep test information out of the correction decision.
 
 The first approved [CPU increment](cpu-audit.md) implements format, pairing,
-identity and reference split checks. The remaining capabilities above are future
-work, not completed checks. No annotation service is authorized by this document.
+identity and reference split checks. The released [scene-review increment](scene-review.md)
+adds similarity candidates, review records and confirmed-group checks. Tool
+availability is not completed human review or a frozen group-aware holdout.
+Prediction-assisted annotation review remains later work. No annotation service
+is authorized by this document.
 
 ## Initial implementation acceptance design
 

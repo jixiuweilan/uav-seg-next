@@ -26,9 +26,14 @@ No model, metric evaluator or training loop exists yet. The local branch is
 `dev`; there is no remote or upstream. No earlier implementation was copied.
 Raw data and artifacts stay outside Git.
 
-The owner accepted this increment at `a464e02` on 2026-09-09.
-Next: agree the scope of near-duplicate screening and human-review tooling.
-Model implementation and execution remain later phases.
+The owner accepted this increment at `a464e02` on 2026-09-09 and released the next
+[training scene screening and human-review increment](docs/scene-review.md).
+It adds reproducible similarity candidates, an offline review page and checks
+for confirmed groups crossing the reference split. The [initial evidence](docs/data/scene-screen-report.md)
+includes 31 passing tests and a first review batch of 199 candidates plus 20
+controls from the full training collection. Actual review decisions and
+a new split freeze remain pending; model implementation and execution are later
+phases.
 
 ## Local setup and checks
 

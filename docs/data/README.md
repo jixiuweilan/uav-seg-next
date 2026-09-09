@@ -26,6 +26,15 @@ pairs. It reconfirms the scoped file-byte identities and explains the different
 pixel-hash conventions in the supplied inventory and current schema. The
 starting facts above and their source snapshot remain preserved.
 
+## Initial scene screening
+
+The [scene screening record](scene-screen-report.md) covers a later read-only
+scan of all 6,996 training images. It found 99 cross-split and 592 within-split
+similarity cues under the recorded heuristic. The first review batch contains
+199 candidates and 20 controls; 492 further qualifying pairs remain outside
+that batch. All human decisions are pending. These cues do not establish scene
+leakage or certify an independent validation set; no split or label was changed.
+
 ## Local access
 
 The optional ignored `.local/data-paths.json` defines `dataset_root` and

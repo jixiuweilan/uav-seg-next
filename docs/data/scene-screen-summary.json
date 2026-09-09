@@ -1,0 +1,90 @@
+{
+  "browser_layout_tested": false,
+  "confirmed_groups": 0,
+  "controls_retained": 20,
+  "controls_target": 20,
+  "date": "2026-09-09",
+  "environment_lock_sha256": "1ec91742c4bdcd0d812d8795447a3b2712760a9a843b87bdf7fad4e0a57867c5",
+  "group_report_sha256": "1042f94bf8cb1e1b599e02f41fae2345ef43e58fff1f374fce0efaf3a603c0f5",
+  "human_decisions_recorded": 0,
+  "javascript_export_import_tested_on_synthetic_page": true,
+  "kind": "scene-candidates",
+  "low_texture_images": 1,
+  "manifest_sha256": "48aa71bba1f03a9d0330275e8222f4ba5d1722b0c4a1db5f6c88be6085b6aacd",
+  "matched_by_partition": {
+    "cross_split": 99,
+    "unassigned": 0,
+    "within_split": 592
+  },
+  "method": {
+    "controls": 20,
+    "hash_max": 8,
+    "max_per_partition": 100,
+    "min_std": 5.0,
+    "name": "gray-ahash64-normalized-rms-v1",
+    "poses": [
+      "r0",
+      "r90",
+      "r180",
+      "r270",
+      "flip-r0",
+      "flip-r90",
+      "flip-r180",
+      "flip-r270"
+    ],
+    "resize": "Pillow L/LANCZOS",
+    "rms_max": 0.45,
+    "seed": 0,
+    "thumbnail_size": 32
+  },
+  "omitted_by_partition": {
+    "cross_split": 0,
+    "unassigned": 0,
+    "within_split": 492
+  },
+  "producer": {
+    "numpy": "2.5.3",
+    "pillow": "12.3.0",
+    "python": "3.12.14",
+    "source_sha256": "0677eae71b2573472d8e5cdf50b06e798fedf0d43082e717c9a1e057e4b7ae40",
+    "version": "0.2.0"
+  },
+  "raw_data_modified": false,
+  "reference_splits_unchanged": true,
+  "retained_by_partition": {
+    "cross_split": 99,
+    "unassigned": 0,
+    "within_split": 100
+  },
+  "review_counts": {
+    "candidate": {
+      "confirmed": 0,
+      "pending": 199,
+      "rejected": 0,
+      "uncertain": 0
+    },
+    "control": {
+      "confirmed": 0,
+      "pending": 20,
+      "rejected": 0,
+      "uncertain": 0
+    },
+    "manual": {
+      "confirmed": 0,
+      "pending": 0,
+      "rejected": 0,
+      "uncertain": 0
+    }
+  },
+  "review_html_sha256": "b8e0e0f49401a39dcdb255c3b5393650d6194dd726ebdd7f9817cbae92d017e8",
+  "review_original_images": 179,
+  "review_pairs": 219,
+  "scene_independence_certified": false,
+  "schema_version": 1,
+  "screen_sha256": "520209ab4c3a1d5d00721ab824af3111a88c58c407605deefcc84d5741c58300",
+  "status": "review_pending",
+  "synthetic_tests_passed": 31,
+  "test_sources_sha256": "dc03d2ac6a6a9dee5ba4442ab1884d705eb9ef355d93e574748815ffddda1424",
+  "total_pairs": 24468510,
+  "train_images": 6996
+}

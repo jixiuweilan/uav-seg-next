@@ -1,8 +1,10 @@
 # Repository Agent Instructions
 
 - Read this file, README.md, docs/requirements.md and docs/data/README.md first.
-- Work only within the owner's stated phase. State the plan before action;
-  on an obstacle or failed prerequisite, report it and wait for direction.
+- Work only within the owner's stated phase. State the plan before action.
+  Resolve routine implementation choices and investigate tool failures within
+  the approved work without mechanical reconfirmation. Stop for an unresolved
+  blocking prerequisite or an action outside the authorized phase.
 - This is an independent implementation. Do not import or copy historical
   project source, configs, tests, experiment narratives or model preferences.
   Initial design uses the facts here and first-party sources. Disclose any
