@@ -4,6 +4,7 @@ This is the first implementation increment approved after the independent
 design. It provides read-only data auditing, deterministic manifests, reference
 split checks, and a provisional flat PNG/ZIP validator and packager. It contains
 no model, evaluator, training loop, near-duplicate detector or annotation editor.
+The owner accepted delivery commit `a464e02` on 2026-09-09.
 
 See the [validation record](data/cpu-audit-report.md) for the completed checks,
 the resolved pixel-hash discrepancy and the remaining review boundary.

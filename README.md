@@ -26,8 +26,9 @@ No model, metric evaluator or training loop exists yet. The local branch is
 `dev`; there is no remote or upstream. No earlier implementation was copied.
 Raw data and artifacts stay outside Git.
 
-Next: review the CPU increment's evidence before releasing near-duplicate and
-human-review tooling. Model implementation and execution remain later phases.
+The owner accepted this increment at `a464e02` on 2026-09-09.
+Next: agree the scope of near-duplicate screening and human-review tooling.
+Model implementation and execution remain later phases.
 
 ## Local setup and checks
 

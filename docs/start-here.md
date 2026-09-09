@@ -6,11 +6,12 @@ The independent design was committed as `9d7dc61` and subsequently approved.
 The owner released the first CPU audit/format increment and selected Miniconda
 for the project-local `.conda/uav-seg-next` environment. Start with the current
 README and [CPU guide](cpu-audit.md); inspect Git state and recorded validation
-evidence before making any status claim. Do not repeat first-layer design or
+evidence before making any status claim. The owner accepted the first increment
+at `a464e02` on 2026-09-09. Do not repeat its acceptance review, first-layer design or
 proceed to a new capability without the owner's phase release.
 
 > Read AGENTS.md, README.md, docs/requirements.md, docs/data/README.md,
-> docs/independent-design.md and docs/cpu-audit.md. Review the implemented CPU
+> docs/independent-design.md and docs/cpu-audit.md. Use the accepted CPU
 > audit/format increment and its evidence within the owner's current request.
 > Use the project-local Miniconda Python for checks. Preserve raw data and local
 > state; do not inspect historical model evidence, install a training stack,

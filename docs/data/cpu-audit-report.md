@@ -6,6 +6,11 @@ Scope: the first CPU audit/format increment approved after design commit
 source, test and environment identities. [Usage and contracts](../cpu-audit.md)
 describe the implemented commands.
 
+Owner acceptance: passed on 2026-09-09 for implementation commit `a464e02`.
+The owner reviewed the delivered evidence and explicitly accepted this phase.
+This closes the first CPU increment; subsequent capability releases remain
+separate decisions.
+
 ## Verified results
 
 | Check | Observed result |
