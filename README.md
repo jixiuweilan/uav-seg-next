@@ -14,35 +14,35 @@ requirements and data facts, not a preselected model or implementation stack.
 The organizer source is preserved byte-for-byte under [docs/official/](docs/official/README.md).
 Its method suggestions are suggestions, not project results or required choices.
 
-## Scope of this starting point
+## Current scope
 
-Only documents, source provenance and split references are versioned. The
-[independent minimal design](docs/independent-design.md) is recorded for owner
-review. No model, training loop, inference engine, dependency stack or runtime
-tests exist yet.
-The local branch is `dev`; there is no remote or upstream. No code from an
-earlier implementation has been copied. Raw data stays outside the repository.
+The [independent minimal design](docs/independent-design.md) was committed before
+the owner approved the first [CPU audit/format increment](docs/cpu-audit.md).
+This increment provides data/pair auditing, deterministic content manifests,
+reference split checks, and grayscale PNG/ZIP validation and packaging.
+The [validation record](docs/data/cpu-audit-report.md) includes 19 passing
+synthetic tests and the verified identities of all 14,492 scoped PNGs.
+No model, metric evaluator or training loop exists yet. The local branch is
+`dev`; there is no remote or upstream. No earlier implementation was copied.
+Raw data and artifacts stay outside Git.
 
-Next: review the independent design and release the first CPU audit/format
-increment if accepted. Implementation and training are later phases; stronger
-Agent capability is not itself evidence that a rewrite will be faster or more
-accurate.
+Next: review the CPU increment's evidence before releasing near-duplicate and
+human-review tooling. Model implementation and execution remain later phases.
 
 ## Local setup and checks
 
-No installation is required to read this starting point. Use standard Python 3
-to inspect JSON and Git for source checks; do not install training dependencies
-on this code-only workstation. Machine-specific paths, if configured, are in
-ignored `.local/data-paths.json`. They are not a portable setup contract.
+The owner selected an isolated Miniconda environment at `.conda/uav-seg-next`.
+See the [CPU guide](docs/cpu-audit.md) for setup, command contracts and limits.
+Machine-specific data paths are in ignored `.local/data-paths.json`.
 
 ```bash
 git status --short
 git branch --show-current
 git remote -v
 git diff --check
-python3 -m json.tool docs/data/summary.json
+.conda/uav-seg-next/bin/python -m unittest discover -s tests -v
+.conda/uav-seg-next/bin/python -m uavseg --help
 ```
 
-When implementation starts, add only the dependencies and tests required by
-the chosen first capability. Do not carry over a historical environment or
-pretend that these document checks validate a nonexistent training runtime.
+The environment contains CPU audit dependencies only. These checks do not
+validate a model or training runtime.

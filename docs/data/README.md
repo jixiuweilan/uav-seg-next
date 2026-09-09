@@ -17,6 +17,15 @@ identities and explicitly unperformed checks. No model history is included.
 - Test 2/3, flight/source grouping and test GT were not available to this audit.
   Example data is not automatically admitted as extra training data.
 
+## First CPU implementation audit
+
+The [CPU validation record](cpu-audit-report.md) and
+[measured summary](cpu-audit-summary.json) cover the independently implemented
+audit of 14,492 PNGs: all training pairs and Test 1, excluding the 11 example
+pairs. It reconfirms the scoped file-byte identities and explains the different
+pixel-hash conventions in the supplied inventory and current schema. The
+starting facts above and their source snapshot remain preserved.
+
 ## Local access
 
 The optional ignored `.local/data-paths.json` defines `dataset_root` and

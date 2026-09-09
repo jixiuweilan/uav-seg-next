@@ -1,0 +1,53 @@
+{
+  "class_counts": [
+    99632059,
+    2026922868,
+    1322537272,
+    645526498,
+    455228715,
+    132748857,
+    2082563464,
+    514001335,
+    56676628
+  ],
+  "date": "2026-09-08",
+  "environment_lock_sha256": "1ec91742c4bdcd0d812d8795447a3b2712760a9a843b87bdf7fad4e0a57867c5",
+  "exact_duplicate_groups": [],
+  "excluded_example_pairs": 11,
+  "files_decoded": 14492,
+  "manifest_sha256": "48aa71bba1f03a9d0330275e8222f4ba5d1722b0c4a1db5f6c88be6085b6aacd",
+  "not_checked": [
+    "near duplicates",
+    "same-scene leakage",
+    "annotation correctness",
+    "source flight provenance",
+    "train-test overlap"
+  ],
+  "pixel_hash_reconciliation": {
+    "current_definition": "SHA256(decoded uint8 row-major interleaved pixel bytes)",
+    "reference_definition": "SHA256(UTF8(mode) + UTF8(str((width, height))) + pixel bytes)",
+    "result": "Both definitions reproduce their recorded digests for every scoped file.",
+    "source_of_definition": "Data-only verification; no historical source inspected.",
+    "verification_script_sha256": "cb0555d922428a7a46bb4aff6079fb426a2565a1078b4fa6e7d2c55f4a1cec1e",
+    "verified_files": 14492
+  },
+  "producer": {
+    "numpy": "2.5.3",
+    "pillow": "12.3.0",
+    "python": "3.12.14",
+    "source_sha256": "40217801b48330b037d57825911a986d4269f4225c00dbcd112e17129f9bc353",
+    "version": "0.1.0"
+  },
+  "reference_inventory_file_byte_matches": 14492,
+  "reference_inventory_sha256": "6554c128cf0b1bd566a0088a22000b0fbd0f73e2d00b0dad0e106d7f0d783914",
+  "split_counts": {
+    "train": 6297,
+    "train_all": 6996,
+    "val": 699
+  },
+  "status": "cpu-audit-only",
+  "synthetic_tests_passed": 19,
+  "test_images": 500,
+  "test_source_sha256": "0dc6604172e106e4bcf64b5c5c8fe06fd327fac5ba3e4658562898c89d265bd4",
+  "train_pairs": 6996
+}

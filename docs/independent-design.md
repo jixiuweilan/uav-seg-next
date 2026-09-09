@@ -1,7 +1,10 @@
 # Independent Minimal Design
 
-Date: 2026-09-08. Status: design recorded for owner review; implementation and
-execution are not released. Starting revision: `e63aa7e`.
+Date: 2026-09-08. Starting revision: `e63aa7e`; independent design committed as
+`9d7dc61` before implementation. The owner subsequently approved the design and
+first CPU increment and selected Miniconda for its isolated environment. See
+the [implementation guide](cpu-audit.md) for current scope. Later model and
+execution phases are not released. The design decisions below are retained.
 
 ## 1. Evidence and independence
 
@@ -204,7 +207,7 @@ not be stable. Paths resolve only through ignored `.local/` configuration.
 Deterministic replay is checked within a pinned environment, not promised across
 devices/releases. [PyTorch reproducibility](https://docs.pytorch.org/docs/2.14/notes/randomness.html).
 
-## 5. Acceptance gates, all pending implementation
+## 5. Acceptance gates defined at the design commit
 
 | Gate | Hand-checkable evidence and pass condition | Where/when |
 | --- | --- | --- |
@@ -277,6 +280,6 @@ Current design validation: organizer SHA-256, three split hashes/counts,
 disjoint/complete split coverage, aggregate pixel count and local inventory
 digest match the recorded facts. Relative document links, machine-path exclusion,
 the metric example arithmetic and Git whitespace checks passed before committing.
-No runtime gate in section 5 has run.
-Commit this document and its navigation link, then return for owner review
-before implementation or any release of historical model evidence.
+At the design commit, no runtime gate in section 5 had run. The subsequent
+CPU increment reports its own evidence separately; it does not release later
+model or execution gates or historical model evidence.

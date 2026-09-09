@@ -1,0 +1,8 @@
+name: uav-seg-next
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.12.14
+  - pillow=12.3.0
+  - numpy=2.5.3

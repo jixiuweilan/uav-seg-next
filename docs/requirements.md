@@ -29,8 +29,9 @@ This is a local source snapshot, not confirmation of current portal notices.
 - One model and one checkpoint; no checkpoint/seed averaging.
 - This machine is for code and CPU audits only; training is separately
   authorized and started by the owner on the execution machine.
-- Independent foundations are to be written afresh; this initial phase ends
-  with a fact-only starting point, not a training framework or trained model.
+- Independent foundations are written afresh. The initial fact-only starting
+  point remains traceable; the first released implementation is CPU audit/format
+  tooling, not a training framework or trained model.
 - Keep the independent design small and decision-oriented. Preserve raw data,
   provenance and reproducibility; do not preselect an architecture from history.
 
@@ -52,8 +53,9 @@ This is a local source snapshot, not confirmation of current portal notices.
    validation set based on which labels make the candidate score better; freeze
    evaluation labels and keep test information out of the correction decision.
 
-These are requested future capabilities, not completed checks. No annotation
-service or additional software installation is authorized by this document.
+The first approved [CPU increment](cpu-audit.md) implements format, pairing,
+identity and reference split checks. The remaining capabilities above are future
+work, not completed checks. No annotation service is authorized by this document.
 
 ## Initial implementation acceptance design
 
