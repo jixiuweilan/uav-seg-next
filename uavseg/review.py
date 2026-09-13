@@ -153,23 +153,68 @@ def review_page(paths, document, screen, output, protected):
 <label>Evidence <select class="evidence"><option value="">Choose evidence</option><option value="full_resolution_images">Full-resolution originals</option><option value="source_metadata">Source / flight metadata</option></select></label>
 <label>Reason / source reference <textarea class="reason" rows="2"></textarea></label>
 </article>''')
-        data = {"base": empty_decisions(document, screen), "pairs": list(pairs.values())}
+        data = {"base": empty_decisions(document, screen), "pairs": list(pairs.values()),
+                "training_ids": sorted(rows)}
         encoded = canonical(data).decode().replace("<", "\\u003c")
         page = '''<!doctype html><html lang="en"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Training scene review</title>
-<style>body{font:16px system-ui;max-width:1000px;margin:24px auto;padding:0 16px;color:#172033;background:#f4f6f8}header,article{background:white;padding:20px;border:1px solid #d8dfe8;border-radius:8px;margin:16px 0}header{position:sticky;top:0;z-index:1}h1{font-size:24px}h2{font-size:18px}.images{display:flex;gap:16px;flex-wrap:wrap}img{width:256px;height:256px}a span{display:block}label{display:block;margin-top:12px}textarea{width:95%}button,input,select{font:inherit;padding:5px}#message{font-weight:bold}</style>
+<style>body{font:16px system-ui;max-width:1000px;margin:24px auto;padding:0 16px;color:#172033;background:#f4f6f8}header,section,article{background:white;padding:20px;border:1px solid #d8dfe8;border-radius:8px;margin:16px 0}header{position:sticky;top:0;z-index:1}h1{font-size:24px}h2{font-size:18px}.images{display:flex;gap:16px;flex-wrap:wrap}img{width:256px;height:256px}a span{display:block}label{display:block;margin-top:12px}textarea{width:95%}button,input,select{font:inherit;padding:5px}#message{font-weight:bold}#manual-list{white-space:pre-wrap}</style>
 <header><h1>Training scene review</h1>
 <p>Candidates are cues. Compare full-resolution originals before recording a decision. No files are uploaded; this page does not modify the dataset.</p>
 <label>Reviewer <input id="reviewer" placeholder="Your name or reviewer ID"></label>
 <button id="export">Download decisions</button> <label>Resume decisions <input type="file" id="import" accept=".json"></label>
 <p id="message" role="status">Decisions are not saved until downloaded.</p></header>
+<section><h2>Record a relation absent from the queue</h2>
+<p>Use two audited training IDs. The page validates and sorts them, then computes the canonical pair ID locally.</p>
+<label>First training ID <input id="manual-left" list="training-ids"></label>
+<label>Second training ID <input id="manual-right" list="training-ids"></label>
+<datalist id="training-ids">''' + "".join(
+            f'<option value="{html.escape(sample_id)}"></option>' for sample_id in sorted(rows)) + '''</datalist>
+<label>Conclusion <select id="manual-status"><option value="">Choose conclusion</option><option value="confirmed">Confirmed: same scene / duplicate</option><option value="rejected">Rejected: different scenes</option><option value="uncertain">Uncertain</option></select></label>
+<label>Evidence <select id="manual-evidence"><option value="">Choose evidence</option><option value="full_resolution_images">Full-resolution originals</option><option value="source_metadata">Source / flight metadata</option></select></label>
+<label>Reason / source reference <textarea id="manual-reason" rows="2"></textarea></label>
+<button id="manual-add">Add manual relation</button> <button id="manual-remove">Remove last manual relation</button>
+<p id="manual-list">No manual relations recorded.</p></section>
 ''' + "\n".join(cards) + '<script type="application/json" id="data">' + encoded + '''</script>
 <script>
 const data=JSON.parse(document.getElementById('data').textContent);
 const cards=[...document.querySelectorAll('article')];
 const message=document.getElementById('message');
+const knownPairs=new Map(data.pairs.map(pair=>[pair.pair_id,pair]));
+const knownIds=new Set(data.training_ids);
 let prior=new Map(), manual=[];
+const nonempty=value=>typeof value==='string'&&value.trim();
+const timezoneDate=value=>nonempty(value)&&Number.isFinite(Date.parse(value))&&/(Z|[+-]\\d{2}:\\d{2})$/.test(value);
+async function pairId(left,right){
+ const bytes=new TextEncoder().encode(JSON.stringify([left,right])+'\\n');
+ const digest=await crypto.subtle.digest('SHA-256',bytes);
+ return [...new Uint8Array(digest)].map(value=>value.toString(16).padStart(2,'0')).join('');
+}
+function renderManual(){
+ document.getElementById('manual-list').textContent=manual.length
+  ?manual.map((row,index)=>`${index+1}. ${row.left} / ${row.right} — ${row.status}`).join('\\n')
+  :'No manual relations recorded.';
+}
+document.getElementById('manual-add').onclick=async()=>{
+ try{
+  const reviewer=document.getElementById('reviewer').value.trim();
+  const ids=[document.getElementById('manual-left').value.trim(),document.getElementById('manual-right').value.trim()].sort();
+  const status=document.getElementById('manual-status').value,evidence=document.getElementById('manual-evidence').value;
+  const reason=document.getElementById('manual-reason').value.trim();
+  if(!reviewer||!reason||!['confirmed','rejected','uncertain'].includes(status)||!['full_resolution_images','source_metadata'].includes(evidence))throw Error('Manual relations need reviewer, conclusion, evidence and reason.');
+  if(ids[0]===ids[1]||!knownIds.has(ids[0])||!knownIds.has(ids[1]))throw Error('Choose two distinct audited training IDs.');
+  const key=await pairId(ids[0],ids[1]);
+  if(knownPairs.has(key))throw Error('This relation is already in the screening queue. Review its card instead.');
+  if(manual.some(row=>row.pair_id===key))throw Error('This manual relation is already recorded.');
+  manual.push({pair_id:key,left:ids[0],right:ids[1],status,reason,evidence,origin:'manual',reviewer,reviewed_at:new Date().toISOString()});
+  renderManual();message.textContent='Manual relation added. Download decisions to save it.';
+ }catch(error){message.textContent=error.message;}
+};
+document.getElementById('manual-remove').onclick=()=>{
+ if(!manual.length){message.textContent='No manual relation to remove.';return;}
+ manual.pop();renderManual();message.textContent='Last manual relation removed. Download decisions to save the change.';
+};
 document.getElementById('export').onclick=()=>{
  try {
   const reviewer=document.getElementById('reviewer').value.trim();
@@ -194,15 +239,19 @@ document.getElementById('import').onchange=async event=>{
   const value=JSON.parse(await event.target.files[0].text());
   for(const key of ['schema_version','kind','manifest_sha256','screen_sha256'])if(value[key]!==data.base[key])throw Error('Decision identity mismatch.');
   if(!Array.isArray(value.decisions))throw Error('Invalid decisions.');
-  const next=new Map(),extras=[],known=new Map(data.pairs.map(p=>[p.pair_id,p]));
+  const next=new Map(),extras=[];
   for(const row of value.decisions){
-   if(next.has(row.pair_id)||!['confirmed','rejected','uncertain'].includes(row.status)||!row.reason||!row.reviewer||!row.reviewed_at||!['full_resolution_images','source_metadata'].includes(row.evidence))throw Error('Invalid or duplicate decision.');
-   const pair=known.get(row.pair_id);
+   if(!row||typeof row!=='object'||!nonempty(row.pair_id)||next.has(row.pair_id)||!['confirmed','rejected','uncertain'].includes(row.status)||!nonempty(row.reason)||!nonempty(row.reviewer)||!['full_resolution_images','source_metadata'].includes(row.evidence))throw Error('Invalid or duplicate decision.');
+   if(!timezoneDate(row.reviewed_at))throw Error('reviewed_at must be an ISO timestamp with timezone.');
+   if(!knownIds.has(row.left)||!knownIds.has(row.right)||row.left>=row.right)throw Error('Decision requires two distinct, sorted audited training IDs.');
+   if(row.pair_id!==await pairId(row.left,row.right))throw Error('Decision pair ID does not match its training IDs.');
+   const pair=knownPairs.get(row.pair_id);
    if(pair&&(row.left!==pair.left||row.right!==pair.right||row.origin!=='screen'))throw Error('Pair mismatch.');
    if(!pair){if(row.origin!=='manual')throw Error('Unknown pair origin.');extras.push(row);}
    next.set(row.pair_id,row);
   }
   prior=next;manual=extras;
+  renderManual();
   cards.forEach((card,i)=>{const row=prior.get(data.pairs[i].pair_id);for(const key of ['status','reason','evidence'])card.querySelector('.'+key).value=row?row[key]:'';});
   document.getElementById('reviewer').value=value.decisions[0]?.reviewer||'';
   message.textContent=`Loaded ${value.decisions.length} decisions. The CLI validates the exported file before grouping.`;

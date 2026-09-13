@@ -113,12 +113,14 @@ manifest/screen digests and a `decisions` list. Each decision contains `pair_id`
 Reasons should identify the actual shared/different landmarks or source record.
 For queued pairs use `origin: "screen"`.
 
-A reviewer can also append a relation absent from the queue using known training
-IDs and `origin: "manual"`, with the same required evidence and provenance.
-This supports independently supplied source/flight relationships without making
-thumbnail detection a prerequisite. Recompute its pair ID from the sorted IDs;
-the HTML resume/export preserves such manual records. It does not provide a
-metadata import service or infer flight IDs from filenames.
+A reviewer can also use the page's manual-relation form to append a relation
+absent from the queue. The form accepts two audited training IDs, sorts them and
+computes the canonical pair ID in the browser. It requires the same conclusion,
+evidence, reason and reviewer provenance and exports `origin: "manual"`. This
+supports independently supplied source/flight relationships without making
+thumbnail detection a prerequisite. The resume input validates every manual ID,
+pair digest and timezone-aware timestamp before preserving the record. The page
+does not provide a metadata import service or infer flight IDs from filenames.
 
 ## Check confirmed groups and the current split
 
@@ -158,15 +160,23 @@ fraction or lack of detected conflicts automatically freezes an evaluation split
 
 ## Validation scope
 
-Run the repository's unittest discovery command. Synthetic fixtures cover
-rotation/reflection, brightness changes, exact pixels with different encoding,
-low texture, deterministic queue caps/controls, stale-image rejection, confirmed
-cross-split and transitive conflicts, decision provenance, protected outputs and
-the CLI flow. If Node is available, `tests/review_dom.cjs` also executes the actual
-generated JavaScript's export/resume logic with a minimal DOM. This is not a
-browser layout or full-resolution link-opening test; that visual check remains
-part of using the offline artifact. Node is not a runtime dependency and is not
-installed by the Conda environment.
+Run the repository's unittest discovery command with the project environment:
+
+```bash
+.conda/uav-seg-next/bin/python -m unittest discover -s tests -v
+```
+
+`environment.yml` and `environment-linux-64.lock` pin NumPy 2.5.3; results from
+an arbitrary Python/NumPy environment are not project validation. Synthetic
+fixtures cover rotation/reflection, brightness changes, exact pixels with
+different encoding, low texture, deterministic queue caps/controls, stale-image
+rejection, confirmed cross-split and transitive conflicts, decision provenance,
+protected outputs and the CLI flow. If Node is available,
+`tests/review_dom.cjs` also executes the actual generated JavaScript's manual-entry,
+export and resume logic with a minimal DOM. This is not a browser layout or
+full-resolution link-opening test; that visual check remains part of using the
+offline artifact. Node is not a runtime dependency and is not installed by the
+Conda environment.
 
 The accepted first audit is a historical snapshot tied to its own source commit.
 The new tools consume its content identity; they do not rewrite its recorded

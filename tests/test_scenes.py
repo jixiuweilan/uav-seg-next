@@ -164,15 +164,18 @@ class SceneTests(unittest.TestCase):
         self.assertIn('file://', content)
         self.assertNotIn('src="https://', content)
         self.assertNotIn('fetch(', content)
+        self.assertIn('Record a relation absent from the queue', content)
         if not shutil.which('node'):
             self.skipTest('Node unavailable; browser-script harness not run')
         result = subprocess.run(['node', 'tests/review_dom.cjs', str(page)], capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
         decisions = json.loads(result.stdout)
-        self.assertEqual(len(decisions['decisions']), 1)
+        self.assertEqual(len(decisions['decisions']), 2)
         self.assertEqual(decisions['decisions'][0]['reviewer'], 'Synthetic Reviewer')
+        self.assertEqual(sum(row['origin'] == 'manual' for row in decisions['decisions']), 1)
         report = group_report(self.document, self.screen, decisions)['report']
         self.assertEqual(len(report['groups']), 1)
+        self.assertEqual(report['review_counts']['manual']['rejected'], 1)
 
     def test_review_output_protection_and_atomic_failure(self):
         with self.assertRaisesRegex(AuditError, 'under .local'):
