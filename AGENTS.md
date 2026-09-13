@@ -21,7 +21,8 @@
 - Treat raw data as read-only. Record confirmed corrections as versioned
   overlays after human review; never delete difficult samples automatically.
 - Keep datasets, artifacts, credentials and absolute machine paths out of Git.
-  Local paths belong only in ignored .local/ configuration. No remote is authorized.
+  Local paths belong only in ignored .local/ configuration. Use only remotes
+  explicitly authorized by the owner.
 - Prefer a minimal working baseline. Validate correctness before claiming
   speed or accuracy gains; compare equivalent workloads and retain provenance.
 - Keep each change coherent across code, interfaces, tests and documentation.

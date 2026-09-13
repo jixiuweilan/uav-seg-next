@@ -22,8 +22,8 @@ This increment provides data/pair auditing, deterministic content manifests,
 reference split checks, and grayscale PNG/ZIP validation and packaging.
 The [validation record](docs/data/cpu-audit-report.md) includes 19 passing
 synthetic tests and the verified identities of all 14,492 scoped PNGs.
-No model, metric evaluator or training loop exists yet. The local branch is
-`dev`; there is no remote or upstream. No earlier implementation was copied.
+No model, metric evaluator or training loop exists yet. The working branch is
+`dev`. No earlier implementation was copied.
 Raw data and artifacts stay outside Git.
 
 The owner accepted this increment at `a464e02` on 2026-09-09 and released the next
