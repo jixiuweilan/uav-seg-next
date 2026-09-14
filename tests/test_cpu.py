@@ -270,6 +270,20 @@ class CPUContractTests(unittest.TestCase):
         with self.assertRaisesRegex(AuditError, "not a regular"):
             validate_zip(self.archive([(info, b"target")]), self.document)
 
+    def test_zip_rejects_encryption_flag_before_reading_payload(self):
+        archive = self.archive([("t.png", png())])
+        validate_zip(archive, self.document)
+        data = bytearray(archive.read_bytes())
+        # ZIP writer clears flag_bits; set the flag in both actual headers.
+        # This tests the encryption gate, not a particular encryption algorithm.
+        central = data.index(b"PK\x01\x02")
+        data[6] |= 1
+        data[central + 8] |= 1
+        archive.write_bytes(data)
+        with patch.object(zipfile.ZipFile, 'read', side_effect=AssertionError('payload read')):
+            with self.assertRaisesRegex(AuditError, 'encrypted member is not supported'):
+                validate_zip(archive, self.document)
+
     def test_pack_invalid_inputs_is_atomic_and_protects_predictions(self):
         (self.predictions / "t.png").write_bytes(png(value=9))
         output = self.base / "bad.zip"

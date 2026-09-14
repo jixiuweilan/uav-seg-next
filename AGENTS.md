@@ -27,5 +27,6 @@
   speed or accuracy gains; compare equivalent workloads and retain provenance.
 - Keep each change coherent across code, interfaces, tests and documentation.
   Run relevant available checks, report omissions, and commit only the reviewed
-  phase after validation. Preserve unrelated edits. Use English authored docs;
-  preserve organizer material in its original language.
+  phase after validation. Preserve unrelated edits. Use Chinese for HTML user
+  interfaces and instructions intended for human operators and teammates, as
+  requested by the owner. Preserve organizer material in its original language.

@@ -164,7 +164,8 @@ class SceneTests(unittest.TestCase):
         self.assertIn('file://', content)
         self.assertNotIn('src="https://', content)
         self.assertNotIn('fetch(', content)
-        self.assertIn('Record a relation absent from the queue', content)
+        self.assertIn('补充列表之外的关系', content)
+        self.assertIn('lang="zh-CN"', content)
         if not shutil.which('node'):
             self.skipTest('Node unavailable; browser-script harness not run')
         result = subprocess.run(['node', 'tests/review_dom.cjs', str(page)], capture_output=True, text=True)
@@ -176,6 +177,29 @@ class SceneTests(unittest.TestCase):
         report = group_report(self.document, self.screen, decisions)['report']
         self.assertEqual(len(report['groups']), 1)
         self.assertEqual(report['review_counts']['manual']['rejected'], 1)
+
+    def test_portable_practice_page_and_real_decision_separation(self):
+        from uavseg.practice import build_practice
+        page = self.local / 'practice.html'
+        document, screen, _ = build_practice(page)
+        content = page.read_text()
+        self.assertIn('合成图片练习', content)
+        self.assertIn('data:image/png;base64,', content)
+        self.assertNotIn('file://', content)
+        self.assertNotIn('src="https://', content)
+        self.assertNotIn('fetch(', content)
+        self.assertNotIn(str(self.base), content)
+        if not shutil.which('node'):
+            self.skipTest('Node unavailable; browser-script harness not run')
+        result = subprocess.run(['node', 'tests/review_dom.cjs', str(page)], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        decisions = json.loads(result.stdout)
+        self.assertEqual(decisions['kind'], 'scene-practice-decisions')
+        with self.assertRaisesRegex(AuditError, 'identity mismatch'):
+            group_report(document, screen, decisions)
+        with self.assertRaisesRegex(AuditError, 'explicitly synthetic'):
+            review_page(self.paths, self.document, self.screen, self.local / 'wrong.html',
+                        [self.raw], practice=True)
 
     def test_review_output_protection_and_atomic_failure(self):
         with self.assertRaisesRegex(AuditError, 'under .local'):

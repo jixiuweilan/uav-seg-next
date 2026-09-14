@@ -1,184 +1,143 @@
-# Training Scene Screening and Human Review
+# 场景筛查与人工复核说明
 
-The owner released this next CPU increment after accepting `a464e02`. Continue
-within the approved design without asking the owner to redefine routine details.
-This increment supplies image-similarity cues, an offline review page and
-confirmed-relation group checks. It does not certify scene independence, edit
-labels, choose a new split, or train a model.
+本阶段提供相似图像线索、离线复核页和已确认关系的分组检查。
+候选不是同一场景结论，复核完成也不代表已经冻结数据划分或允许训练。
+[历史筛查记录](data/scene-screen-report.md)保存了首批官方训练数据的执行证据。
 
-The [initial evidence record](data/scene-screen-report.md) reports the first
-official-training scan and the generated review batch.
+## 组员当前怎样参与
 
-## Screen the audited training collection
+先读[中文协作与任务说明](team-review.md)。飞书中的练习 HTML 内含全部合成原图，
+下载后用电脑浏览器打开即可。无需安装环境、阅读代码或获取官方数据。
+飞书文件预览不一定运行脚本，请使用下载后的本地文件。
+如果只有手机、无法下载或无法打开，直接反馈卡点，由开发代理解决，不要求自行配置。
 
-Use the existing Miniconda environment and the accepted audit manifest:
+练习页有醒目标识。它导出的 `scene-practice-decisions` 记录不能用于真实场景分组。
+正式页面导出 `scene-decisions`，两类记录不能互相恢复。
+
+## 判断标准
+
+先查看原始分辨率图像，比较道路走向、建筑排列、路口、地块边界等固定地物。
+图像的旋转、光照和裁剪可能不同；同一航拍批次也可能经过不同地点。
+
+| 选择 | 何时使用 | 理由应写什么 |
+|---|---|---|
+| 确认：同一场景或重复图像 | 多处固定地物及相对位置能对应，或有可核验的同一地点记录 | 指出位置和对应关系，或资料出处 |
+| 排除：不同场景 | 有明确的不同地点证据 | 写出区分地点的证据；没找到相似点不够 |
+| 存疑：证据不足 | 信息太少、模糊或相互矛盾 | 写出缺失的证据或矛盾点 |
+| 尚未查看 | 还没开始检查 | 不会作为已完成判断导出 |
+
+仅有颜色相近、建筑风格相似、大片树林或水面，不能确认同一场景。
+例如“旋转后同一个三岔路口、旁边的建筑和水塘位置都对应”是可复核的理由；
+“相似度高，所以确认”不是。不能确认时保留“存疑”，不用凑齐确定结果。
+合成练习只能检验操作和说明，不能证明实际航拍判读能力。
+
+## 页面操作
+
+1. 填写“复核人”，在卡片上点击两张图的“查看原图”。
+2. 选择判断结果、依据，并填写具体理由。没有来源资料时，不要选择“来源或航拍记录”。
+3. 如有列表之外的独立证据，在“补充列表之外的关系”选择两个样本编号并填写。
+   已在列表中的关系在原卡片处理；重复关系不能添加。误加时可撤销最后一条。
+4. 点击“下载复核记录”。页面不会自动保存，关闭前务必下载。
+5. 重新打开相同批次页面，用“恢复已下载的记录”选择此前 JSON 文件。
+   恢复会替换当前页面内容，先下载当前版本再恢复。每轮修改保留独立文件。
+6. 把下载文件交回对应飞书任务，并说明卡住的操作、难理解的文字或仍需的证据。
+
+未改动的恢复记录保留原复核人和时间；修改后的卡片使用当前复核人与新时间。
+记录都需要合法结果、非空理由、复核人、依据和含时区时间。网页检查样本编号、
+关系编号及批次身份，失败时保留已有内容。网页恢复支持
+`YYYY-MM-DDTHH:MM:SS[.小数](Z或±HH:MM)`；命令行还会做完整校验。
+复核人和依据均是填写声明，不是经过身份认证的签名。
+
+## 开发代理负责生成和校验
+
+以下命令供开发端或获授权的数据机器使用，不分配给当前组员。
+当前代码终端只能生成合成练习与运行测试。
 
 ```bash
+# 仅生成合成练习；输出使用新文件名，放在 .local/ 下。
+.conda/uav-seg-next/bin/python -m uavseg.practice --output .local/中文复核练习.html
+
+# 下列官方数据命令只能在数据机器上运行。
 .conda/uav-seg-next/bin/python -m uavseg screen-scenes \
-  --config .local/data-paths.json \
-  --manifest .local/cpu-audit-v1.json \
+  --config .local/data-paths.json --manifest .local/cpu-audit-v1.json \
   --output .local/scene-candidates-v1.json
-```
-
-Only training images are read. Their filename set, dataset-relative paths and
-encoded-file SHA-256 values must match the audited snapshot before they supply
-descriptors. Test images and all masks are excluded from feature extraction.
-Any stale image fails the command instead of silently changing the dataset.
-
-The version-1 method is an explicitly defined starting heuristic, not a learned
-detector or a claimed complete scene-recognition method:
-
-1. Convert RGB to Pillow L, then resize to 32 x 32 using LANCZOS.
-2. For each of eight poses, average each 4 x 4 cell into an 8 x 8 grid. Encode
-   `cell > grid mean` as 64 bits in row-major, most-significant-bit-first order.
-   Poses are four counterclockwise quarter turns, then horizontal reflection
-   followed by those same four turns. The stored pose transforms the right image
-   to compare against the left image.
-3. For each unordered training pair, compare the left identity hash with all
-   right poses. Retain poses with Hamming distance at most 8. Compare their
-   32 x 32 gray arrays after subtracting each image's mean and dividing by
-   `max(std, 1)`. An eligible pose with normalized RMS distance at most 0.45 is
-   a candidate. Distance reductions use float64; descriptors use float32.
-4. Images with grayscale standard deviation below 5 are flagged as low texture.
-   Similarity alone does not shortlist pairs involving them; equal audited
-   decoded-pixel hashes still qualify as exact matches. Flagged images remain
-   in the dataset and require source evidence/manual attention, not deletion.
-
-The thresholds are declared implementation defaults, not validated operating
-points or results of model/test-set tuning. Simple hashes can miss partial crop
-overlap, viewpoint changes and consecutive frames, or confuse repeated textures.
-Unrelated scenes can look alike; shared flight/source metadata is still needed
-when available. The test collection never calibrates these thresholds.
-
-All pairs are screened. To bound review material, retain at most 100 qualifying
-pairs per partition: cross train/val, within a split, or unassigned when the audit
-has no split. Exact matches rank first, then lower RMS and Hamming distance,
-then stable IDs. Counts of every qualifying and omitted pair remain in the output.
-The review page displays retained cross-split candidates first.
-
-The default control sample requests 20 distinct pairs from the non-qualifying
-remainder, using Python's seeded RNG with seed 0 and rejection sampling. It does
-not accidentally draw truncated qualifying pairs. The loop is bounded; report
-the actual retained count when there are too few eligible controls or the bound
-is reached. Controls include difficult/unscored low-texture cases when sampled.
-They help inspect missed relations; 20 pairs cannot establish a recall estimate
-for all scenes. `--hash-max`, `--rms-max`, `--min-std`, `--max-per-partition`,
-`--controls` and `--seed` are recorded parameters; any change creates a separate
-candidate version and requires compatible review records.
-
-The envelope contains the canonical `screen` payload, its `screen_sha256`, and
-source/environment provenance. It binds the input manifest identity. Pair IDs
-hash canonical `[left_id, right_id]`, with distinct IDs in sorted order. Stored
-RMS values are rounded to eight decimal places for reporting; thresholds and
-ranking use the unrounded computed value. A candidate is never an accepted edge.
-
-## Open and complete the offline review
-
-```bash
 .conda/uav-seg-next/bin/python -m uavseg review-scenes \
-  --config .local/data-paths.json \
-  --manifest .local/cpu-audit-v1.json \
-  --screen .local/scene-candidates-v1.json \
-  --output .local/scene-review-v1.html
-```
-
-Open the generated HTML as a local file on the machine holding the dataset.
-It embeds 256-pixel previews and links to full-resolution original images. The
-best aligned right preview is available in a details panel. Original links use
-local file URIs, so this artifact is restricted to `.local/`, is not portable to
-another machine unchanged and must not be published. Regenerate it there using
-that machine's authorized data config. Rendering verifies every linked image's
-byte identity again. The page has no external scripts, fonts, uploads or service.
-
-For each relation, compare original images or source metadata, enter the reviewer
-identity, evidence type and reason, and choose:
-
-- **Confirmed**: the pair shares a scene or duplicates image content.
-- **Rejected**: the pair represents different scenes; this is stronger than
-  merely saying it is not an exact duplicate.
-- **Uncertain**: the evidence does not support a definite conclusion.
-- **Unreviewed**: leave pending; it is not exported as a completed decision.
-
-Download the decisions JSON and keep each revision as a new local file. The page
-does not save automatically or write to the dataset. Use its resume input to load
-an earlier download. Unchanged imported decisions preserve their original
-reviewer/timestamp; changed decisions receive the entered reviewer and a new ISO
-timestamp. The CLI validates exported records before any grouping. Reviewer
-identity and evidence are declarations, not authenticated signatures.
-
-The document contains `schema_version: 1`, `kind: "scene-decisions"`, the exact
-manifest/screen digests and a `decisions` list. Each decision contains `pair_id`,
-`left`, `right`, `status`, `origin`, `reviewer`, timezone-aware `reviewed_at`,
-`reason` and `evidence`. Evidence is `full_resolution_images` or `source_metadata`.
-Reasons should identify the actual shared/different landmarks or source record.
-For queued pairs use `origin: "screen"`.
-
-A reviewer can also use the page's manual-relation form to append a relation
-absent from the queue. The form accepts two audited training IDs, sorts them and
-computes the canonical pair ID in the browser. It requires the same conclusion,
-evidence, reason and reviewer provenance and exports `origin: "manual"`. This
-supports independently supplied source/flight relationships without making
-thumbnail detection a prerequisite. The resume input validates every manual ID,
-pair digest and timezone-aware timestamp before preserving the record. The page
-does not provide a metadata import service or infer flight IDs from filenames.
-
-## Check confirmed groups and the current split
-
-```bash
+  --config .local/data-paths.json --manifest .local/cpu-audit-v1.json \
+  --screen .local/scene-candidates-v1.json --output .local/scene-review-v1.html
 .conda/uav-seg-next/bin/python -m uavseg check-groups \
-  --config .local/data-paths.json \
-  --manifest .local/cpu-audit-v1.json \
-  --screen .local/scene-candidates-v1.json \
-  --decisions .local/scene-decisions-v1.json \
+  --config .local/data-paths.json --manifest .local/cpu-audit-v1.json \
+  --screen .local/scene-candidates-v1.json --decisions .local/scene-decisions-v1.json \
   --output .local/scene-groups-v1.json
 ```
 
-Omit `--decisions` to report the untouched pending queue; this does not fabricate
-reviews. All referenced IDs and manifest/screen identities must match. Duplicate
-decisions, invalid statuses, missing reasons/reviewers/evidence and timestamps
-without timezones fail. Only confirmed relations join connected components.
-Rejected and uncertain relations never create edges. Groups retain their
-confirmed-edge IDs; the report binds the complete decisions digest. Members with
-no confirmed connection remain explicitly ungrouped, not presumed independent.
+正式页面嵌入 256 像素缩略图，原图链接指向生成机器的本地文件，必须留在
+`.local/`，不得公开发布或直接当成可跨机器使用的材料，应在授权数据机器重新生成。
+生成前再次核对每张图像的文件身份。合成练习页单独嵌入全部原图，不含本机路径。
+两种页面均无外部字体、脚本、上传或网络服务。
 
-A confirmed component spanning train and validation produces `known_split_conflict`.
-A rejected relation inside a confirmed component produces `inconsistent_review`.
-Both generate an actionable report and exit 2; unlike malformed inputs, these
-are valid reports describing unresolved data/review conflicts. Neither rewrites
-the reference split. All other successfully generated reports exit 0:
+### 筛查方法与局限
 
-- `review_pending`: queued relations are unreviewed/uncertain, candidates were
-  omitted by the cap, or a component exceeds 20 members and needs a chain review.
-- `reviewed_cues_only`: the retained cues have decisions; scene independence is
-  still not established. Exit 0 is not a training release.
+只读取训练图像，核对文件名集合、数据集相对路径与审计 SHA-256；不读取掩码或测试图。
+任何变化都会使命令失败，不会静默更新数据身份。
 
-Group IDs hash the manifest identity and sorted members. The report includes
-per-queue decision counts, unreviewed/uncertain IDs, omitted candidate counts,
-large-component flags and whether an audited split was available. Every report
-keeps `scene_independence_certified: false`. No thresholds, review completion
-fraction or lack of detected conflicts automatically freezes an evaluation split.
+1. RGB 转 Pillow 灰度，再用 LANCZOS 缩放到 32×32。
+2. 对四个逆时针直角旋转，以及水平镜像后的四个旋转分别计算描述。
+   每 4×4 像素平均为 8×8 网格，以“格值大于网格均值”编码为 64 位哈希，
+   按行排列、高位在前。姿态始终表示右图如何对齐左图。
+3. 每个无序图像对比较左图原姿态与右图各姿态，哈希差异不超过 8 位后，
+   对减去均值并除以 `max(标准差, 1)` 的灰度图比较 RMS；不超过 0.45 才成为候选。
+   描述用 float32，距离归约用 float64。
+4. 标准差小于 5 标记为低纹理，普通相似度不将涉及这些图像的关系列为候选。
+   审计像素哈希完全相同时仍算精确重复；低纹理图不会被删除。
 
-## Validation scope
+阈值是初始启发式默认值，没有经过模型效果或测试集调优。局部重叠、视角变化和
+连续帧可能漏检，重复纹理可能误报。无法把筛查结果解释为完整场景识别。
 
-Run the repository's unittest discovery command with the project environment:
+默认每种划分关系最多保留 100 个候选，优先精确重复，再按 RMS、哈希差异和稳定编号
+排序；记录全部命中和遗漏计数。页面优先展示跨训练/验证的候选。
+对照从不满足候选条件的关系中抽取，默认种子 0、目标 20 对、使用有上限的拒绝采样。
+不会把因候选上限截去的合格关系当成对照，数量不足时报告实际数量。
+对照可能包含低纹理难例；少量对照不能证明整体召回率。
+
+`--hash-max`、`--rms-max`、`--min-std`、`--max-per-partition`、`--controls`、
+`--seed` 均记录在输出中，修改后必须使用新的候选版本与匹配复核记录。
+`screen` 载荷使用规范 JSON 哈希绑定输入清单。关系编号是两个不同且排序后样本编号
+的规范 JSON SHA-256。RMS 展示值保留八位小数，阈值和排序使用未舍入值。
+
+### 记录与分组契约
+
+正式记录包含 `schema_version: 1`、`kind: scene-decisions`、manifest/screen 哈希、
+`decisions` 列表。每条包括 `pair_id`、`left`、`right`、`status`、`origin`、
+`reviewer`、`reviewed_at`、`reason`、`evidence`。列表内来源为 `screen`，
+列表外为 `manual`；依据为 `full_resolution_images` 或 `source_metadata`。
+页面不自动导入来源资料，也不从文件名推测航班。
+
+仅确认关系建立连通分组。排除或存疑关系不建边；无确认连接的样本保留为未分组，
+不能假定独立。不提供 `--decisions` 时仅报告待复核队列，不伪造决定。
+重复关系、身份不匹配、无效字段和无时区时间戳会失败。
+
+| 报告状态 | 含义 |
+|---|---|
+| `known_split_conflict` | 确认分组跨训练/验证划分，退出码 2 |
+| `inconsistent_review` | 同一确认连通组内出现排除关系，退出码 2 |
+| `review_pending` | 尚未完成、存在存疑、候选被截断或分组超过 20 个成员，退出码 0 |
+| `reviewed_cues_only` | 已查看当前线索，仍不能证明场景独立，退出码 0 |
+
+前两种是有效的冲突报告，不会自动修改划分。分组编号绑定清单身份与成员，报告绑定
+完整决定哈希，保留各队列计数、待复核和存疑关系、遗漏数、大分组提示和划分可用性。
+`scene_independence_certified` 始终为 `false`；退出码 0 不等于训练放行。
+
+## 自动验证范围
+
+开发代理用项目环境运行：
 
 ```bash
 .conda/uav-seg-next/bin/python -m unittest discover -s tests -v
 ```
 
-`environment.yml` and `environment-linux-64.lock` pin NumPy 2.5.3; results from
-an arbitrary Python/NumPy environment are not project validation. Synthetic
-fixtures cover rotation/reflection, brightness changes, exact pixels with
-different encoding, low texture, deterministic queue caps/controls, stale-image
-rejection, confirmed cross-split and transitive conflicts, decision provenance,
-protected outputs and the CLI flow. If Node is available,
-`tests/review_dom.cjs` also executes the actual generated JavaScript's manual-entry,
-export and resume logic with a minimal DOM. This is not a browser layout or
-full-resolution link-opening test; that visual check remains part of using the
-offline artifact. Node is not a runtime dependency and is not installed by the
-Conda environment.
-
-The accepted first audit is a historical snapshot tied to its own source commit.
-The new tools consume its content identity; they do not rewrite its recorded
-producer hash to match a later implementation. Raw data, reference splits,
-annotation masks and previous audit artifacts remain unchanged.
+环境锁定 NumPy 2.5.3。合成测试覆盖旋转镜像、亮度变化、编码不同但像素相同、
+低纹理、候选上限、对照采样、图像过期、跨划分与传递冲突、记录来源、输出保护及 CLI。
+安装了 Node 时还执行实际页面脚本，覆盖补充关系、导出恢复、无效输入和练习隔离。
+Node 不是运行依赖，未安装时相应测试明确跳过。
+自动测试不代替真人对文字理解与实际浏览器操作体验的反馈。
+历史审计的源代码身份和数字保持原样，不能改成当前版本来冒充重跑证据。

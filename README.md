@@ -1,54 +1,41 @@
-# UAV Segmentation — Independent Start
+# 无人机航拍图像分割：独立实现
 
-Build an original, reproducible and rules-compliant semantic-segmentation
-solution for low-altitude aerial imagery. This repository starts with verified
-requirements and data facts, not a preselected model or implementation stack.
+本项目依据官方规则和已核验的数据事实独立开发，不复制历史项目实现。
+当前完成的是数据审计、提交格式检查、场景相似性筛查和人工复核工具。
+尚未实现模型、指标评估器和训练流程。
 
-## Read first
+## 组员从这里开始
 
-1. [Agent instructions](AGENTS.md)
-2. [Requirements and open decisions](docs/requirements.md)
-3. [Data facts and access](docs/data/README.md)
-4. [Fresh-session startup prompt](docs/start-here.md)
+请阅读[中文协作与任务说明](docs/team-review.md)。当前人工任务使用已发到飞书的
+“中文复核练习.html”，下载后用电脑浏览器打开即可，无需代码仓库、Python、
+Conda、GPU 或官方数据。练习材料仅含合成图像，不产生真实数据结论。
 
-The organizer source is preserved byte-for-byte under [docs/official/](docs/official/README.md).
-Its method suggestions are suggestions, not project results or required choices.
+- [场景复核操作与判断说明](docs/scene-review.md)
+- [数据审计与提交格式工具说明](docs/cpu-audit.md)
+- [项目要求](docs/requirements.md)与[已有数据事实](docs/data/README.md)
+- [代理工作规则](AGENTS.md)与[启动说明](docs/start-here.md)
 
-## Current scope
+## 进度与边界
 
-The [independent minimal design](docs/independent-design.md) was committed before
-the owner approved the first [CPU audit/format increment](docs/cpu-audit.md).
-This increment provides data/pair auditing, deterministic content manifests,
-reference split checks, and grayscale PNG/ZIP validation and packaging.
-The [validation record](docs/data/cpu-audit-report.md) includes 19 passing
-synthetic tests and the verified identities of all 14,492 scoped PNGs.
-No model, metric evaluator or training loop exists yet. The working branch is
-`dev`. No earlier implementation was copied.
-Raw data and artifacts stay outside Git.
+独立设计已经评审通过。首轮 CPU 工具交付 `a464e02` 于 2026-09-09 获得验收。
+[历史审计记录](docs/data/cpu-audit-report.md)核对了 14,492 个范围内 PNG 的身份。
+[首轮场景筛查记录](docs/data/scene-screen-report.md)包含 199 个候选和 20 个对照。
+这些数字是历史批次证据，不能当作人工复核完成或无场景泄漏的证明。
 
-The owner accepted this increment at `a464e02` on 2026-09-09 and released the next
-[training scene screening and human-review increment](docs/scene-review.md).
-It adds reproducible similarity candidates, an offline review page and checks
-for confirmed groups crossing the reference split. The [initial evidence](docs/data/scene-screen-report.md)
-includes 31 passing tests and a first review batch of 199 candidates plus 20
-controls from the full training collection. Actual review decisions and
-a new split freeze remain pending; model implementation and execution are later
-phases.
+两位组员的首轮代码审查已收到；后续自动验证、补测试和代码修复由开发代理承担。
+人类负责实际操作体验、证据解释及判断说明的歧义反馈。真实场景复核和新划分冻结
+仍待执行机器、可访问材料及复核证据就绪。正式训练由负责人在另行授权后启动。
 
-## Local setup and checks
+## 开发端检查
 
-The owner selected an isolated Miniconda environment at `.conda/uav-seg-next`.
-See the [CPU guide](docs/cpu-audit.md) for setup, command contracts and limits.
-Machine-specific data paths are in ignored `.local/data-paths.json`.
+在仓库根目录使用项目隔离环境。当前终端仅承担代码与合成测试，官方数据任务需在
+授权的数据机器上执行。环境建立方法见[CPU 工具说明](docs/cpu-audit.md)。
 
 ```bash
-git status --short
-git branch --show-current
-git remote -v
-git diff --check
 .conda/uav-seg-next/bin/python -m unittest discover -s tests -v
 .conda/uav-seg-next/bin/python -m uavseg --help
+git diff --check
 ```
 
-The environment contains CPU audit dependencies only. These checks do not
-validate a model or training runtime.
+代码在 `dev` 分支。数据、模型、环境、生成的练习材料与机器路径均不进入 Git。
+组织方材料在 [docs/official](docs/official/README.md) 中保留原文。
