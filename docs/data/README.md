@@ -28,6 +28,9 @@ starting facts above and their source snapshot remain preserved.
 
 ## Initial scene screening
 
+本节记录的是2026-09-09的历史批次。后续已接收的部分人工判断及尚待核实的证据，
+见[2026-09-14跟进记录](review-followup-20260914.md)。
+
 The [scene screening record](scene-screen-report.md) covers a later read-only
 scan of all 6,996 training images. It found 99 cross-split and 592 within-split
 similarity cues under the recorded heuristic. The first review batch contains
