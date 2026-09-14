@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src blob:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<title>本地原图针对性复核</title>
+<style>
+body{font:16px system-ui;color:#172033;background:#f3f5f7;margin:20px auto;max-width:1400px;padding:0 16px}section,header{background:white;padding:20px;margin:16px 0;border:1px solid #d6dce4;border-radius:8px}h1{font-size:26px}h2{font-size:20px}button,input,select,textarea{font:inherit;padding:7px;margin:5px}button{cursor:pointer}button:disabled{cursor:default}label{display:block}textarea{width:95%;min-height:90px}.images{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}.viewport{height:550px;overflow:auto;background:#e5e9ed}img{max-width:none;display:block}#message{white-space:pre-wrap;font-weight:600}#files-status{white-space:pre-wrap;max-height:180px;overflow:auto}small{color:#465569}details{margin:12px 0}@media(max-width:700px){.images{grid-template-columns:minmax(0,1fr)}}
+</style>
+<header><h1>本地原图针对性复核</h1>
+<p>打开自己电脑上的官方原图，逐条比较固定地物。本页不上传图片，不修改原文件；关闭前请下载进度。</p>
+<p id="batch"></p>
+<ol><li>点击“选择原图文件夹”，选择存放训练原图 PNG 的目录（通常是 train/images，不是掩码目录）。浏览器可能将选择提示称为“上传”，本页只在本机读取。</li>
+<li>程序只核对清单涉及的图片。出现缺图时可再“补选原图文件”；哈希不一致请反馈文件编号，不要修改图片。</li>
+<li>默认按100%像素显示，在两侧图片区域滚动查看细节；可调整显示比例。填写结果与理由，勾选查看声明，然后“保存本条”。</li>
+<li>可以分次完成。点击“下载进度 JSON”，在对应飞书任务回传；下次先恢复 JSON，再选择本地原图继续。</li></ol>
+<label>选择原图文件夹 <input id="folder" type="file" webkitdirectory multiple></label>
+<label>补选原图文件（可多选） <input id="files" type="file" accept=".png" multiple></label>
+<p id="files-status">尚未选择原图。选择文件夹不会读取清单以外的图片内容。</p>
+<label>复核人 <input id="reviewer" placeholder="填写姓名"></label>
+<button id="download">下载进度 JSON</button>
+<label>恢复此前下载的 JSON（将替换页面中的已保存记录，请先下载当前进度） <input id="restore" type="file" accept=".json"></label>
+<p id="message" role="status" aria-live="polite"></p>
+</header>
+<section><h2>怎样判断</h2><p>比较道路走向、建筑排列、路口、地块边界及相对位置。允许旋转、光照和裁剪差异，不需要说出地点名称。</p>
+<ul><li>确认：多处固定地物能对应，写清对应位置。</li><li>排除：有明确的不同地点证据，写清区别；仅没找到相似点不足以排除。</li><li>存疑：图像模糊、缺少可对应地物或证据矛盾。写清原因，不必强行确认或排除。</li></ul>
+<p>大片水面、树林或相近颜色本身不能证明相同。判断须来自两张原图，本页不预填上轮答案。</p></section>
+<section><button id="prev">上一条</button><button id="next">下一条</button><span id="progress"></span>
+<h2 id="pair-title"></h2><p id="pair-state"></p>
+<label>显示比例 <select id="zoom"><option value="0.5">50%（概览）</option><option value="1" selected>100%（原始像素）</option><option value="2">200%（放大）</option></select></label>
+<div class="images"><div><p id="left-name"></p><div class="viewport"><img id="left-image" alt="左侧原图"></div></div><div><p id="right-name"></p><div class="viewport"><img id="right-image" alt="右侧原图"></div></div></div>
+<label>本轮判断 <select id="status"><option value="">尚未判断</option><option value="confirmed">确认：同一场景</option><option value="rejected">排除：不同场景</option><option value="uncertain">存疑：证据不足</option></select></label>
+<label>具体图像依据 <textarea id="reason" placeholder="例如：左图右上角的三岔路口，与右图左下角路口及旁边两栋长条建筑的位置能对应。"></textarea></label>
+<label><input id="viewed" type="checkbox">我已查看并比较这两张原图，填写的是本轮判断。</label>
+<button id="save">保存本条</button><button id="discard">撤销本条未保存的编辑</button>
+<p><small>保存本条只保留在当前页面内，仍需下载进度。时间由页面记录。无法加载原图时请反馈错误，不要用旧小图代填。</small></p></section>
+<script type="application/json" id="data">/*PAGE_DATA*/</script>
+<script>
+'use strict';
+const data=JSON.parse(document.getElementById('data').textContent);
+const el=id=>document.getElementById(id);
+const loaded=new Map(), fileErrors=new Map(), records=new Map();
+let index=0,dirty=false,unsaved=false,busy=false;
+const say=text=>{el('message').textContent=text;};
+const pair=()=>data.pairs[index];
+const hasImages=p=>loaded.has(p.left)&&loaded.has(p.right);
+const digest=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
+function applyZoom(){for(const side of ['left','right']){const im=el(side+'-image');im.style.width=(1024*Number(el('zoom').value))+'px';im.style.height=im.style.width;}}
+function controls(){
+  const ready=hasImages(pair())&&!busy;
+  for(const id of ['status','reason','viewed','save'])el(id).disabled=!ready;
+  for(const id of ['folder','files','restore','download','prev','next','discard'])el(id).disabled=busy;
+}
+function render(){
+  const p=pair(),row=records.get(p.pair_id);
+  el('pair-title').textContent=`第 ${index+1} 条：${p.left} / ${p.right}（优先级 ${p.priority}）`;
+  el('progress').textContent=`已保存 ${records.size} / ${data.pairs.length} 条`;
+  el('pair-state').textContent=hasImages(p)?'两张原图哈希与批次一致；请查看地物后判断。':'等待本条两张原图通过核对。';
+  for(const side of ['left','right']){
+    const id=p[side];el(side+'-name').textContent=data.images[id].path;
+    const img=el(side+'-image');if(loaded.has(id))img.src=loaded.get(id);else img.removeAttribute('src');
+  }
+  el('status').value=row?.status||'';el('reason').value=row?.reason||'';el('viewed').checked=false;
+  dirty=false;applyZoom();controls();
+}
+function fileSummary(){
+  const missing=Object.keys(data.images).filter(id=>!loaded.has(id));
+  el('files-status').textContent=`原图已核对 ${loaded.size} / ${Object.keys(data.images).length} 张。`+
+    (missing.length?'\n待加载：'+missing.join('、'):'')+
+    (fileErrors.size?'\n'+Array.from(fileErrors,([id,error])=>id+'：'+error).join('\n'):'');
+}
+async function choose(event){
+  if(busy)return;
+  if(dirty){say('请先保存或撤销本条编辑，再选择图片。');event.target.value='';return;}
+  busy=true;controls();
+  try{
+    if(!globalThis.crypto?.subtle)throw Error('浏览器无法提供本地哈希核对。请反馈浏览器名称和本提示，无需安装环境。');
+    const selected=new Map();
+    const names=new Map(Object.entries(data.images).map(([id,im])=>[im.name,id]));
+    for(const file of Array.from(event.target.files||[])){
+      if(names.has(file.name)){const id=names.get(file.name);if(!selected.has(id))selected.set(id,[]);selected.get(id).push(file);}
+    }
+    say(`正在核对 ${selected.size} 张相关图片，请稍候……`);
+    for(const [id,files] of selected){
+      if(loaded.has(id)){URL.revokeObjectURL(loaded.get(id));loaded.delete(id);}
+      let url;
+      try{
+        if(files.length!==1)throw Error('选中了同名文件，请只选择训练原图目录或单独补选原图');
+        const file=files[0],expected=data.images[id];
+        if(file.size!==expected.bytes||await digest(await file.arrayBuffer())!==expected.sha256)throw Error('文件哈希或大小不一致，请核对是否选了原图而非掩码或缩略图');
+        url=URL.createObjectURL(file);const image=new Image();image.src=url;await image.decode();
+        if(image.naturalWidth!==expected.size[0]||image.naturalHeight!==expected.size[1])throw Error('原图尺寸不一致');
+        loaded.set(id,url);fileErrors.delete(id);
+      }catch(error){if(url)URL.revokeObjectURL(url);fileErrors.set(id,error.message);}
+    }
+    fileSummary();say('核对结束。通过核对的图像可以开始复核；缺失图像可继续补选。');
+  }catch(error){say(error.message);}finally{busy=false;render();event.target.value='';}
+}
+function saveCurrent(){
+  if(!hasImages(pair()))throw Error('请先加载并核对本条两张原图。');
+  const reviewer=el('reviewer').value.trim(),reason=el('reason').value.trim(),status=el('status').value;
+  if(!reviewer||!reason||!['confirmed','rejected','uncertain'].includes(status))throw Error('请填写复核人、判断与具体理由。');
+  if(!el('viewed').checked)throw Error('查看两张原图后，请勾选查看声明。');
+  const p=pair();
+  records.set(p.pair_id,{pair_id:p.pair_id,left:p.left,right:p.right,status,reason,reviewer,
+    reviewed_at:new Date().toISOString(),evidence:'full_resolution_images',viewed_originals:true,
+    image_sha256:{left:data.images[p.left].sha256,right:data.images[p.right].sha256}});
+  dirty=false;unsaved=true;render();say('本条已保存在页面内。关闭前请下载进度 JSON。');
+}
+function validate(value){
+  if(!value||Object.entries(data.base).some(([k,v])=>value[k]!==v)||!Array.isArray(value.decisions))throw Error('记录类型或批次不匹配。');
+  const next=new Map(),pairs=new Map(data.pairs.map(p=>[p.pair_id,p]));
+  for(const row of value.decisions){
+    if(!row||typeof row!=='object')throw Error('无效复核条目。');
+    const p=pairs.get(row.pair_id);
+    if(!p||next.has(row.pair_id)||row.left!==p.left||row.right!==p.right)throw Error('未知、重复或不匹配的关系编号。');
+    if(!['confirmed','rejected','uncertain'].includes(row.status)||['reason','reviewer'].some(k=>typeof row[k]!=='string'||!row[k].trim()))throw Error('判断、理由和复核人无效。');
+    if(typeof row.reviewed_at!=='string'||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(row.reviewed_at)||!Number.isFinite(Date.parse(row.reviewed_at))||new Date(row.reviewed_at).toISOString()!==row.reviewed_at)throw Error('复核时间无效。');
+    if(row.evidence!=='full_resolution_images'||row.viewed_originals!==true||!row.image_sha256||Object.keys(row.image_sha256).length!==2||['left','right'].some(s=>row.image_sha256[s]!==data.images[p[s]].sha256))throw Error('原图身份或查看声明不匹配。');
+    next.set(row.pair_id,row);
+  }return next;
+}
+el('folder').onchange=choose;el('files').onchange=choose;el('zoom').onchange=applyZoom;
+for(const id of ['status','reason','viewed'])el(id).onchange=()=>{dirty=true;};
+el('reason').oninput=()=>{dirty=true;};
+el('save').onclick=()=>{if(!busy)try{saveCurrent();}catch(error){say(error.message);}};
+el('discard').onclick=()=>{if(!busy){render();say('已撤销本条未保存的编辑。');}};
+for(const [id,step] of [['prev',-1],['next',1]])el(id).onclick=()=>{
+  if(busy)return;if(dirty){say('请先保存或撤销本条编辑。');return;}
+  index=Math.max(0,Math.min(data.pairs.length-1,index+step));render();say('');
+};
+el('download').onclick=()=>{
+  if(busy)return;try{
+    if(dirty)saveCurrent();
+    const value={...data.base,decisions:data.pairs.filter(p=>records.has(p.pair_id)).map(p=>records.get(p.pair_id))};
+    validate(value);
+    const blob=new Blob([JSON.stringify(value,null,2)+'\n'],{type:'application/json'}),url=URL.createObjectURL(blob);
+    const link=document.createElement('a');link.href=url;link.download='原图复核进度-'+Date.now()+'.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    unsaved=false;say(`已发起下载，包含 ${records.size} 条。请确认文件已保存，再关闭页面或交回飞书任务。`);
+  }catch(error){say(error.message);}
+};
+el('restore').onchange=async event=>{
+  if(busy||!event.target.files.length)return;
+  if(dirty){say('请先保存或撤销本条编辑，再恢复记录。');event.target.value='';return;}
+  busy=true;controls();
+  try{
+    const next=validate(JSON.parse(await event.target.files[0].text()));
+    records.clear();for(const [key,row] of next)records.set(key,row);
+    unsaved=false;render();say('记录已恢复，原复核人与时间保留。继续编辑前需加载本地原图。');
+  }catch(error){say('恢复失败，已有记录保留：'+error.message);}finally{busy=false;controls();event.target.value='';}
+};
+window.addEventListener('beforeunload',event=>{if(dirty||unsaved){event.preventDefault();event.returnValue='';}});
+el('batch').textContent=`本批 ${data.pairs.length} 条关系、${Object.keys(data.images).length} 张去重原图。批次 ${data.base.request_sha256.slice(0,12)}。`;
+render();
+</script></html>
