@@ -5,6 +5,9 @@
   Resolve routine implementation choices and investigate tool failures within
   the approved work without mechanical reconfirmation. Stop for an unresolved
   blocking prerequisite or an action outside the authorized phase.
+- Teammate communication is relayed exclusively by the owner. Prepare messages
+  and handoff files locally; do not contact teammates or operate external
+  messaging or task services.
 - This is an independent implementation. Do not import or copy historical
   project source, configs, tests, experiment narratives or model preferences.
   Initial design uses the facts here and first-party sources. Disclose any

@@ -12,7 +12,7 @@ body{font:16px system-ui;color:#172033;background:#f3f5f7;margin:20px auto;max-w
 <ol><li>点击“选择原图文件夹”，选择存放训练原图 PNG 的目录（通常是 train/images，不是掩码目录）。浏览器可能将选择提示称为“上传”，本页只在本机读取。</li>
 <li>程序只核对清单涉及的图片。出现缺图时可再“补选原图文件”；哈希不一致请反馈文件编号，不要修改图片。</li>
 <li>默认按100%像素显示，在两侧图片区域滚动查看细节；可调整显示比例。填写结果与理由，勾选查看声明，然后“保存本条”。</li>
-<li>可以分次完成。点击“下载进度 JSON”，在对应飞书任务回传；下次先恢复 JSON，再选择本地原图继续。</li></ol>
+<li>可以分次完成。点击“下载进度 JSON”，交给负责人转交；下次先恢复 JSON，再选择本地原图继续。</li></ol>
 <label>选择原图文件夹 <input id="folder" type="file" webkitdirectory multiple></label>
 <label>补选原图文件（可多选） <input id="files" type="file" accept=".png" multiple></label>
 <p id="files-status">尚未选择原图。选择文件夹不会读取清单以外的图片内容。</p>
@@ -135,7 +135,7 @@ el('download').onclick=()=>{
     validate(value);
     const blob=new Blob([JSON.stringify(value,null,2)+'\n'],{type:'application/json'}),url=URL.createObjectURL(blob);
     const link=document.createElement('a');link.href=url;link.download='原图复核进度-'+Date.now()+'.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
-    unsaved=false;say(`已发起下载，包含 ${records.size} 条。请确认文件已保存，再关闭页面或交回飞书任务。`);
+    unsaved=false;say(`已发起下载，包含 ${records.size} 条。请确认文件已保存，再关闭页面或交给负责人。`);
   }catch(error){say(error.message);}
 };
 el('restore').onchange=async event=>{

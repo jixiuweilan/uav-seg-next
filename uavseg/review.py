@@ -208,7 +208,7 @@ const knownPairs=new Map(data.pairs.map(pair=>[pair.pair_id,pair]));
 const knownIds=new Set(data.training_ids);
 let prior=new Map(), manual=[];
 function showError(error){
- message.textContent=/[一-鿿]/.test(error.message)?error.message:'操作未完成，请记录浏览器名称和操作步骤，在飞书任务中反馈。';
+ message.textContent=/[一-鿿]/.test(error.message)?error.message:'操作未完成，请记录浏览器名称和操作步骤，交给负责人转达。';
 }
 const nonempty=value=>typeof value==='string'&&value.trim();
 const labels={confirmed:'确认',rejected:'排除',uncertain:'存疑'};
