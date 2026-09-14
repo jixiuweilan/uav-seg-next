@@ -60,6 +60,10 @@ availability is not completed human review or a frozen group-aware holdout.
 Prediction-assisted annotation review remains later work. No annotation service
 is authorized by this document.
 
+负责人后续要求结束追加复核并继续项目。当前新增的[基线数据准备](baseline-data.md)
+交付同步几何变换、标签映射和候选整组划分，均在 CPU 合成数据及已有 JSON 上验证。
+候选不等于冻结验证集，不代表指标边界或训练执行已经授权。
+
 ## Initial implementation acceptance design
 
 Define hand-checkable confusion-matrix/ignore tests; paired geometric transforms
