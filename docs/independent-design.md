@@ -5,8 +5,10 @@ Date: 2026-09-08. Starting revision: `e63aa7e`; independent design committed as
 first CPU increment and selected Miniconda for its isolated environment. See
 the [implementation guide](cpu-audit.md) for that scope. After accepting it, the
 owner released [scene screening and human-review tooling](scene-review.md).
-Later model and execution phases are not released. The design decisions below
-are retained.
+The owner subsequently requested continued implementation. The current
+[baseline code increment](baseline-runtime.md) adds the model and synthetic
+execution checks; installing a training runtime here and formal training remain
+outside the authorized scope. The design decisions below are retained.
 
 ## 1. Evidence and independence
 

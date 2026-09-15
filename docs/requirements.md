@@ -64,6 +64,10 @@ is authorized by this document.
 交付同步几何变换、标签映射和候选整组划分，均在 CPU 合成数据及已有 JSON 上验证。
 候选不等于冻结验证集，不代表指标边界或训练执行已经授权。
 
+2026-09-15继续交付[基线代码与数值验证入口](baseline-runtime.md)。指标以显式命名的
+内部口径实现并通过手算测试，尚未确认官方边界等价性；不得用于实验选优。
+模型与更新/预测接口已编写，执行端5项数值测试未运行；正式训练循环与运行授权仍未交付。
+
 ## Initial implementation acceptance design
 
 Define hand-checkable confusion-matrix/ignore tests; paired geometric transforms

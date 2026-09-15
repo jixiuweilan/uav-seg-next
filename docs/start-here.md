@@ -5,7 +5,11 @@
 最新负责人指示：结束两处图像依据追问，继续项目，不再给组员追加这轮工作。
 当前已交付[基线数据准备与候选划分](baseline-data.md)，包含纯 CPU 的同步几何变换、
 标签映射和只读 JSON 的整组候选划分。沟通只经负责人转达；查看当前 README 和 Git 状态。
-候选未冻结，尚无模型、指标评估器或训练循环；不在当前终端安装训练栈或读取官方原图。
+当前已继续交付[基线代码与执行端验证入口](baseline-runtime.md)：64项本机合成测试通过，
+5项模型数值测试待执行端。候选未冻结，尚无正式训练循环；不在当前终端安装训练栈或读取官方原图。
+已授权工作能够推进时必须继续，不因子任务、测试或提交完成就等待负责人再次说“继续”。
+负责人确认无可连接执行端，同意由一名组员完成数值验证；
+代码与[中文操作步骤](team-baseline-check.md)已经备齐，沟通仍由负责人转达。
 
 The independent design was committed as `9d7dc61` and subsequently approved.
 The owner released the first CPU audit/format increment and selected Miniconda
@@ -24,8 +28,9 @@ label corrections and execution authorization must retain their evidence boundar
 > current request; inspect current artifacts before claiming completed reviews.
 > Use the project-local Miniconda Python for checks. Preserve raw data and local
 > state; do not inspect historical model evidence, install a training stack,
-> run GPU smoke, start training or create a remote. Report unperformed gates
-> explicitly and wait at the current phase's review boundary.
+> run GPU smoke, start training or create a remote. Continue authorized code work
+> and available validation. Stop only for completion, an owner stop request or a
+> concrete prerequisite that cannot be resolved within the approved boundaries.
 
 ## Original independent-design prompt (historical)
 

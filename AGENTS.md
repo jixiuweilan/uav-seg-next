@@ -5,6 +5,11 @@
   Resolve routine implementation choices and investigate tool failures within
   the approved work without mechanical reconfirmation. Stop for an unresolved
   blocking prerequisite or an action outside the authorized phase.
+- Do not stop merely because a subtask, commit, test run or milestone is done.
+  While authorized work can still advance, continue without waiting for another
+  "continue" message. Stop only when the requested work is complete, the owner
+  asks to stop, or a concrete blocker requires owner input or new authorization.
+  If blocked, state precisely what is missing and what the owner needs to do.
 - Teammate communication is relayed exclusively by the owner. Prepare messages
   and handoff files locally; do not contact teammates or operate external
   messaging or task services.

@@ -1,3 +1,3 @@
-"""Independent CPU data and submission checks. No model runtime."""
+"""Independent segmentation tools; model runtime imports remain optional."""
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
