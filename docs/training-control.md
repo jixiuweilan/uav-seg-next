@@ -4,7 +4,8 @@
 组员报告在 `b8ec92df7c84809098f3ecd956c86e0989bd69ca` 上的基线全量5/5通过，
 退出码0，报告为 `.local/baseline-runtime-check-v2.json`，环境保持
 Python3.11.15、PyTorch2.8.0+cu128、NumPy2.0.2、Pillow11.3.0。
-该结果属于先前基线接口，不能覆盖本轮新增代码；原始JSON仍待接收。
+该结果属于先前基线接口，不能覆盖本轮新增代码；v2原始JSON现已接收，
+其代码摘要、完整5项通过状态及依赖版本均核验一致，详见[接收记录](checkpoint-fix.md)。
 
 ## 本轮实现
 
@@ -42,16 +43,16 @@ Python3.11.15、PyTorch2.8.0+cu128、NumPy2.0.2、Pillow11.3.0。
 
 ## 原始报告接收
 
-组员保留v1与v2，负责人只需转交原始文件，不再安排旧检查点复测。
-代理收到文件后，在本机运行以下命令；这一步只读JSON及本项目Git对象：
+v2已完成接收，组员继续保留v1与v2，无需再转交或重跑。
+本机已使用以下命令完成核验；这一步只读JSON及本项目Git对象：
 
 ```bash
-.conda/uav-seg-next/bin/python -m uavseg.runtime_receipt --report .local/baseline-runtime-check-v2.json --commit b8ec92df7c84809098f3ecd956c86e0989bd69ca --output .local/runtime-v2-receipt.json
+.conda/uav-seg-next/bin/python -m uavseg.runtime_receipt --report baseline-runtime-check-v2.json --commit b8ec92df7c84809098f3ecd956c86e0989bd69ca --output .local/runtime-feedback-v2/original-receipt.json
 ```
 
-实际文件落点可以不同，按收到的位置调整 `--report`。
+上述接收回执已存在，不重复覆盖。报告已原样复制到 `.local/runtime-feedback-v2/`，根目录原文件仍保留。
 工具对原文件字节计算摘要，核对测试范围、数量、状态和错误清单，并按指定被测提交
 重建当时的源码摘要，不拿当前工作树摘要冒充旧版本摘要。
 `passed`必须与测试数量和空错误清单一致；单项通过不会被记成全量通过。
 通过接收表示报告结构及来源摘要一致，不是独立观察执行过程或认证报告者身份。
-原始报告缺失时不生成假报告补位；本次文字转述保存在忽略目录，且单独标注文件尚未接收。
+早先仅有文字时的接收记录也保留，不追改为当时已经拿到文件。

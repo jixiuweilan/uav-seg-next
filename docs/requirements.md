@@ -66,8 +66,8 @@ is authorized by this document.
 
 2026-09-15继续交付[基线代码与数值验证入口](baseline-runtime.md)。指标以显式命名的
 内部口径实现并通过手算测试，尚未确认官方边界等价性；不得用于实验选优。
-模型与更新/预测接口已编写，检查点修复后执行端转述全量5/5通过；
-原始报告接收见[跟进记录](checkpoint-fix.md)。后续已交付[有限更新控制](training-control.md)，
+模型与更新/预测接口已编写，检查点修复后执行端全量5/5通过的v2原始JSON已接收并核对代码摘要；
+证据及边界见[跟进记录](checkpoint-fix.md)。后续已交付[有限更新控制](training-control.md)，
 正式训练入口、验证选优调度及运行授权仍未交付。
 
 ## Initial implementation acceptance design

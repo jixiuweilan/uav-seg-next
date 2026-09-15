@@ -1,6 +1,8 @@
 # Local inputs, artifacts and machine configuration
 .local/
 /scene-decisions.json
+/baseline-runtime-check-*.json
+/baseline-checkpoint-recheck-*.json
 /data/
 datasets/
 pretrained/
