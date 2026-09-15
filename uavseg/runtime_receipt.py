@@ -39,7 +39,7 @@ def inspect_receipt(report, *, expected_source):
             report.get('official_data_read') is not False or report.get('formal_training_started') is not False):
         raise AuditError('报告执行范围与合成CPU任务不一致')
     scope = report.get('suite', 'all')  # 0.5.0 reports predate explicit suite labels.
-    expected_tests = {'all': 5, 'checkpoint': 1}.get(scope)
+    expected_tests = {'all': 5, 'checkpoint': 1, 'controls': 5}.get(scope)
     if expected_tests is None:
         raise AuditError('未知报告测试范围')
     count = report.get('tests_run')

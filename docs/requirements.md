@@ -68,7 +68,10 @@ is authorized by this document.
 内部口径实现并通过手算测试，尚未确认官方边界等价性；不得用于实验选优。
 模型与更新/预测接口已编写，检查点修复后执行端全量5/5通过的v2原始JSON已接收并核对代码摘要；
 证据及边界见[跟进记录](checkpoint-fix.md)。后续已交付[有限更新控制](training-control.md)，
-正式训练入口、验证选优调度及运行授权仍未交付。
+正式训练入口及运行授权仍未交付；验证选优当时尚未交付。
+
+0.7.0已交付[验证、确定性调度和合成选择管线](validation-selection.md)。选择器仍限定合成接口，
+明确拒绝宣称官方选优；正式训练入口、划分冻结、官方指标确认和运行预算仍未交付。
 
 ## Initial implementation acceptance design
 

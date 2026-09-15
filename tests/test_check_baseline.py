@@ -28,6 +28,7 @@ class RuntimeEntryTests(unittest.TestCase):
         self.assertEqual(result.testsRun, 1)
         self.assertEqual(calls, ['checkpoint'])
         self.assertEqual(selected_suite(module, 'all').countTestCases(), 2)
+        self.assertEqual(selected_suite(module, 'controls', (module,)).countTestCases(), 2)
 
     def test_missing_torch_is_blocked_and_report_cannot_be_overwritten(self):
         local = Path(__file__).resolve().parent.parent / '.local'

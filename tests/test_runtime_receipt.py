@@ -37,6 +37,8 @@ class RuntimeReceiptTests(unittest.TestCase):
         result = inspect_receipt(self.report, expected_source='a' * 64)
         self.assertFalse(result['full_suite_reported_passed'])
         self.assertEqual(result['reported_status'], 'passed')
+        controls = {**self.report, 'suite': 'controls', 'tests_run': 5}
+        self.assertFalse(inspect_receipt(controls, expected_source='a' * 64)['full_suite_reported_passed'])
 
     def test_contradictions_wrong_sources_and_missing_details_fail(self):
         for key, value in (('tests_run', 1), ('tests_run', True), ('errors', ['error']),

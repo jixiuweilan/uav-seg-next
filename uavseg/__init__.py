@@ -1,3 +1,3 @@
 """Independent segmentation tools; model runtime imports remain optional."""
 
-__version__ = "0.6.0"
+__version__ = "0.7.0"

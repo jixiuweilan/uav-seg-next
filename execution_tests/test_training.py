@@ -4,12 +4,29 @@ import unittest
 
 import torch
 
+from uavseg.common import AuditError
 from uavseg.model import CompactUNet
-from uavseg.runtime import update_batches
+from uavseg.runtime import tensor_batches, update_batches
 from uavseg.training import Budget
 
 
 class BoundedRuntimeTests(unittest.TestCase):
+    def test_numpy_batches_copy_to_explicit_device(self):
+        import numpy as np
+        images = np.zeros((1, 3, 16, 17), np.float32)
+        targets = np.zeros((1, 16, 17), np.int64)
+        value = next(tensor_batches([{'ids': ('a',), 'epoch': 0,
+                                      'images': images, 'targets': targets}], device='cpu'))
+        images[:] = 1
+        targets[:] = 2
+        self.assertTrue(torch.all(value[0] == 0).item())
+        self.assertTrue(torch.all(value[1] == 0).item())
+        for bad in ({'ids': (), 'epoch': 0, 'images': images, 'targets': targets},
+                    {'ids': ('a',), 'epoch': -1, 'images': images, 'targets': targets},
+                    {'ids': ('a',), 'epoch': 0, 'images': images.astype(np.float64), 'targets': targets}):
+            with self.assertRaises(AuditError):
+                next(tensor_batches([bad], device='cpu'))
+
     def test_skip_then_update_stops_without_reading_next_batch(self):
         torch.manual_seed(0)
         model = CompactUNet()

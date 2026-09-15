@@ -5,8 +5,7 @@ from torch import nn
 from torch.nn import functional as F
 
 from .common import AuditError
-
-MODEL_ID = 'compact-unet-16-32-64-128-256-gn8-v1'
+from .contracts import MODEL_ID
 
 
 def block(in_channels, out_channels):

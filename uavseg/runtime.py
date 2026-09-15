@@ -13,6 +13,7 @@ from .metrics import INTERNAL_POLICY
 from .model import CompactUNet, MODEL_ID
 from .submission import file_sha256
 from .training import bounded_updates
+from .validation import evaluate_samples
 
 
 def _images(images):
@@ -52,6 +53,42 @@ def update_batches(model, optimizer, batches, *, budget, emit):
     """Consume explicit (images, targets) batches with both limits and event records."""
     return bounded_updates(batches, lambda pair: update_batch(model, optimizer, *pair),
                            budget=budget, emit=emit)
+
+
+def tensor_batches(batches, *, device):
+    """Move prevalidated NumPy batches to the explicit execution device."""
+    for batch in batches:
+        if not isinstance(batch, dict) or set(batch) != {'ids', 'epoch', 'images', 'targets'}:
+            raise AuditError('训练批次缺少ID、轮次、图像或标签')
+        images, targets = np.asarray(batch['images']), np.asarray(batch['targets'])
+        ids, epoch = batch['ids'], batch['epoch']
+        if (not isinstance(ids, tuple) or len(ids) != len(set(ids)) or
+                any(not isinstance(value, str) or not value for value in ids) or
+                type(epoch) is not int or epoch < 0 or
+                images.dtype != np.float32 or targets.dtype != np.int64 or images.ndim != 4 or
+                len(ids) != images.shape[0] or
+                targets.shape != (images.shape[0], *images.shape[-2:])):
+            raise AuditError('训练批次数组类型或尺寸无效')
+        yield (torch.from_numpy(np.array(images, copy=True, order='C')).to(device),
+               torch.from_numpy(np.array(targets, copy=True, order='C')).to(device))
+
+
+def validate_model(model, samples, *, expected_ids, emit, device='cpu'):
+    """Run full-image validation one sample at a time through the shared predictor."""
+    def official_samples():
+        for sample in samples:
+            if not isinstance(sample, dict) or 'target' not in sample:
+                yield sample
+                continue
+            target = np.asarray(sample['target'])
+            if (target.dtype != np.int64 or target.ndim != 2 or not target.size or
+                    not (((target >= 0) & (target < 8)) | (target == IGNORE_TARGET)).all()):
+                raise AuditError('验证目标须为二维int64模型标签，取值0至7或-100')
+            official = np.where(target == IGNORE_TARGET, 0, target + 1).astype(np.uint8)
+            yield {**sample, 'target': official}
+    return evaluate_samples(official_samples(),
+                            lambda sample: predict_image(model, sample['image'], device=device),
+                            expected_ids=expected_ids, emit=emit)
 
 
 def predict_image(model, image, *, device='cpu'):

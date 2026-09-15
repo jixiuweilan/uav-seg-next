@@ -18,20 +18,22 @@ def source_identity():
     return sha256(canonical(entries))
 
 
-def selected_suite(module, scope):
+def selected_suite(module, scope, controls=()):
     loader = unittest.defaultTestLoader
     if scope == 'checkpoint':
         return loader.loadTestsFromName('BaselineTests.test_checkpoint_roundtrip_and_identity_rejections', module)
     if scope == 'all':
         return loader.loadTestsFromModule(module)
+    if scope == 'controls' and controls:
+        return unittest.TestSuite(loader.loadTestsFromModule(value) for value in controls)
     raise AuditError('未知验证范围')
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description='在执行端前台运行 CPU 合成数值验证；不读取官方数据、不运行正式训练')
     parser.add_argument('--output', type=Path, required=True, help='仓库 .local 下的新版本 JSON 报告')
-    parser.add_argument('--suite', choices=('all', 'checkpoint'), default='all',
-                        help='all运行全部5项；checkpoint只复测检查点保存与恢复')
+    parser.add_argument('--suite', choices=('all', 'checkpoint', 'controls'), default='all',
+                        help='all运行原基线5项；checkpoint复测1项；controls运行新增控制适配5项')
     args = parser.parse_args(argv)
     try:
         local = Path(__file__).resolve().parent.parent / '.local'
@@ -50,13 +52,13 @@ def main(argv=None):
         import torch
         import numpy as np
         from PIL import __version__ as pillow_version
-        from execution_tests import test_baseline
+        from execution_tests import test_baseline, test_training, test_validation
 
         # No CUDA query or allocation. These checks explicitly use CPU tensors.
         torch.set_num_threads(2)
         torch.manual_seed(0)
         torch.use_deterministic_algorithms(True)
-        suite = selected_suite(test_baseline, args.suite)
+        suite = selected_suite(test_baseline, args.suite, (test_training, test_validation))
         result = unittest.TextTestRunner(verbosity=2).run(suite)
         passed = result.wasSuccessful() and result.testsRun > 0 and not result.skipped
         report.update(status='passed' if passed else 'failed', tests_run=result.testsRun,
