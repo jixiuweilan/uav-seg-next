@@ -1,4 +1,4 @@
-"""Execution-side baseline primitives; no formal training entrypoint or loop."""
+"""Execution-side baseline primitives; no formal training entrypoint."""
 
 from pathlib import Path
 import re
@@ -12,6 +12,7 @@ from .data import IGNORE_TARGET, decode_predictions
 from .metrics import INTERNAL_POLICY
 from .model import CompactUNet, MODEL_ID
 from .submission import file_sha256
+from .training import bounded_updates
 
 
 def _images(images):
@@ -45,6 +46,12 @@ def update_batch(model, optimizer, images, targets):
     optimizer.step()
     return {'updated': True, 'reason': 'valid_pixels', 'valid_pixels': valid,
             'loss': float(loss.detach().cpu())}
+
+
+def update_batches(model, optimizer, batches, *, budget, emit):
+    """Consume explicit (images, targets) batches with both limits and event records."""
+    return bounded_updates(batches, lambda pair: update_batch(model, optimizer, *pair),
+                           budget=budget, emit=emit)
 
 
 def predict_image(model, image, *, device='cpu'):
