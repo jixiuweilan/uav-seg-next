@@ -1,5 +1,8 @@
 # 组员任务：运行一次基线合成验证
 
+**已有首轮4/5结果的组员请直接使用[检查点定向复测说明](checkpoint-fix.md)**，
+保留现有 `bigdata` 环境，不重复以下首次安装与全量验证步骤。
+
 负责人已同意由组员执行。**只需要一名组员接这项任务**：优先选择已装 Miniconda、
 能使用终端和 Git 的人；其他组员这轮无需操作。成功或失败都如实交回，代码诊断和修复由开发代理完成。
 
@@ -30,7 +33,8 @@ git rev-parse HEAD
 python -c "import sys, torch, numpy, PIL; print(sys.version); print(torch.__version__); print(numpy.__version__); print(PIL.__version__)"
 ```
 
-Python须为3.12；PyTorch、NumPy、Pillow均须能导入。满足时直接进入第3步，
+新环境建议Python3.12；已有3.11环境可先运行并如实记录版本。PyTorch、NumPy、Pillow均须能导入。
+满足时直接进入第3步，
 不修改原环境；不满足时使用下面的新环境方案。
 
 **没有可用环境**：在本轮新仓库根目录创建项目独立环境。

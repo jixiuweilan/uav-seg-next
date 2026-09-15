@@ -113,3 +113,10 @@ def new_output(output, protected):
 def write_json(output, value, protected):
     with new_output(output, protected) as temporary:
         temporary.write_bytes(canonical(value))
+
+
+def write_binary(output, writer, protected):
+    """Give a serializer an open binary stream; publish only after it closes."""
+    with new_output(output, protected) as temporary:
+        with temporary.open('wb') as stream:
+            writer(stream)

@@ -1,8 +1,10 @@
 # 基线代码与执行端数值验证
 
-日期：2026-09-15，版本0.5.0。已补齐内部指标、审计样本读取、小型 U-Net、
+日期：2026-09-15，当前版本0.5.1。已补齐内部指标、审计样本读取、小型 U-Net、
 单批次更新、完整图像预测及合成检查点保存/恢复代码。
-开发端64项合成测试通过；另有5项依赖 PyTorch 的数值测试尚未运行。
+0.5.0开发端64项合成测试通过；组员回报5项数值测试中4项通过、检查点保存失败。
+当前已修复文件流写入，待[定向复测及原始JSON接收](checkpoint-fix.md)。
+0.5.1开发端69项合成测试通过，不包含执行端PyTorch数值测试。
 不能据此宣称模型已经可训练、速度达标或取得任何准确率。
 
 ## 已实现的链路
@@ -50,10 +52,10 @@
 只需一名组员按[中文任务步骤](team-baseline-check.md)运行和回传，代理负责诊断与修复。
 开发终端不安装 PyTorch，不运行以下数值测试。
 
-执行端需有 Git、Python 3.12、NumPy、Pillow和可导入的 PyTorch环境。
+执行端需有 Git、Python 3.11或3.12、NumPy、Pillow和可导入的 PyTorch环境。
 CPU即可，无需 GPU、CUDA、官方数据、审计清单或人工判断文件。
 任务说明提供已有环境检查和新建 Miniconda 环境两条路径，新环境暂定 PyTorch 2.7.1 CPU。
-当前仅核对官方安装来源和 API，尚未实测任何 PyTorch版本兼容性。
+已有PyTorch2.8.0环境收到4/5通过的转述，完整兼容性结论待修复复测及原始报告核验。
 `environment.yml` 仍是纯 CPU 审计环境，不是模型执行环境。
 
 在执行端已有仓库中，确认没有未提交修改后更新 `dev`：
@@ -77,7 +79,8 @@ python -m uavseg.check_baseline --output .local/baseline-runtime-check-v1.json
 512尺寸仅验证前向，反向使用32尺寸合成图；**不测量正式512训练的内存或速度**。
 
 结果写入指定JSON，包含代码内容摘要、依赖版本、测试数量及失败详情。
-退出码0且 `status=passed`、`tests_run=5` 才算全部通过；1表示测试失败，2表示依赖或输入条件未满足。
+默认运行 `suite=all`，退出码0且 `status=passed`、`tests_run=5` 才算该轮全部通过；
+`--suite checkpoint`只运行1项，其通过仅代表检查点范围。1表示测试失败，2表示依赖或输入条件未满足。
 缺少 PyTorch 时明确记录 `blocked`、0项数值测试，不会静默跳过。
 如果依赖导入报错而未生成报告，保留终端错误文本。重复运行换 `v2` 等新文件名，不覆盖原报告。
 
@@ -96,7 +99,7 @@ python -m uavseg.check_baseline --output .local/baseline-runtime-check-v1.json
 git diff --check
 ```
 
-普通测试目录有意不包含 `execution_tests`；64项通过不包含那5项模型数值测试。
+普通测试目录有意不包含 `execution_tests`；本机通过数不包含模型数值测试。
 本次没有读取官方原图、安装训练栈、运行GPU检查或正式训练。
 
 API核对依据：[GroupNorm](https://docs.pytorch.org/docs/2.14/generated/torch.nn.GroupNorm.html)、

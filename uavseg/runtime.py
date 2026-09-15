@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from torch.nn import functional as F
 
-from .common import AuditError, new_output
+from .common import AuditError, write_binary
 from .data import IGNORE_TARGET, decode_predictions
 from .metrics import INTERNAL_POLICY
 from .model import CompactUNet, MODEL_ID
@@ -89,8 +89,9 @@ def save_checkpoint(model, output, *, provenance, protected):
         raise AuditError('权重张量无效')
     payload = {'schema_version': 1, 'model_id': MODEL_ID, 'provenance': provenance,
                'torch_version': str(torch.__version__), 'state_dict': state}
-    with new_output(output, protected) as temporary:
-        torch.save(payload, temporary)
+    # A dot-prefixed suffixless path gives PyTorch's filename writer an empty
+    # archive basename. Its stream writer does not derive names from the path.
+    write_binary(output, lambda stream: torch.save(payload, stream), protected)
     return {'checkpoint_sha256': file_sha256(Path(output)), 'provenance': provenance}
 
 

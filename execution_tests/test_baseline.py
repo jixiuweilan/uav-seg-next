@@ -4,6 +4,7 @@ from copy import deepcopy
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 import numpy as np
 from PIL import Image
@@ -112,6 +113,17 @@ class BaselineTests(unittest.TestCase):
             with self.assertRaises(AuditError):
                 save_checkpoint(self.model, Path(temporary) / 'protected.pt',
                                 provenance=provenance, protected=[Path(temporary)])
+            # A serializer may fail after writing bytes: never publish a partial
+            # checkpoint or leave its hidden temporary file behind.
+            failed = Path(temporary) / 'failed.pt'
+            def interrupted_save(payload, stream):
+                stream.write(b'partial')
+                raise RuntimeError('synthetic interrupted write')
+            with patch('uavseg.runtime.torch.save', side_effect=interrupted_save):
+                with self.assertRaisesRegex(RuntimeError, 'interrupted'):
+                    save_checkpoint(self.model, failed, provenance=provenance, protected=[])
+            self.assertFalse(failed.exists())
+            self.assertEqual(list(Path(temporary).iterdir()), [path])
 
     def test_full_image_to_png_zip_without_masks(self):
         with tempfile.TemporaryDirectory() as temporary:

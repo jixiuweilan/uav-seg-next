@@ -6,12 +6,29 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from types import ModuleType
 from unittest.mock import patch
 
-from uavseg.check_baseline import main, source_identity
+from uavseg.check_baseline import main, selected_suite, source_identity
 
 
 class RuntimeEntryTests(unittest.TestCase):
+    def test_checkpoint_selection_does_not_repeat_unrelated_tests(self):
+        module = ModuleType('synthetic_baseline_tests')
+        calls = []
+        class BaselineTests(unittest.TestCase):
+            def test_checkpoint_roundtrip_and_identity_rejections(self):
+                calls.append('checkpoint')
+            def test_other(self):
+                calls.append('other')
+        module.BaselineTests = BaselineTests
+        result = unittest.TestResult()
+        selected_suite(module, 'checkpoint').run(result)
+        self.assertTrue(result.wasSuccessful())
+        self.assertEqual(result.testsRun, 1)
+        self.assertEqual(calls, ['checkpoint'])
+        self.assertEqual(selected_suite(module, 'all').countTestCases(), 2)
+
     def test_missing_torch_is_blocked_and_report_cannot_be_overwritten(self):
         local = Path(__file__).resolve().parent.parent / '.local'
         local.mkdir(exist_ok=True)
@@ -28,6 +45,19 @@ class RuntimeEntryTests(unittest.TestCase):
             self.assertEqual(result['tests_run'], 0)
             self.assertFalse(result['official_data_read'] or result['formal_training_started'])
             self.assertEqual(result['source_sha256'], source_identity())
+            self.assertEqual(result['suite'], 'all')
+
+    def test_missing_runtime_retains_checkpoint_scope(self):
+        local = Path(__file__).resolve().parent.parent / '.local'
+        local.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=local) as temporary:
+            output = Path(temporary) / 'checkpoint.json'
+            with patch('uavseg.check_baseline.importlib.util.find_spec', return_value=None):
+                with contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(main(['--suite', 'checkpoint', '--output', str(output)]), 2)
+            report = json.loads(output.read_bytes())
+            self.assertEqual(report['suite'], 'checkpoint')
+            self.assertEqual(report['tests_run'], 0)
 
     def test_output_outside_local_rejected_before_runtime_import(self):
         with tempfile.TemporaryDirectory() as temporary:

@@ -18,9 +18,20 @@ def source_identity():
     return sha256(canonical(entries))
 
 
+def selected_suite(module, scope):
+    loader = unittest.defaultTestLoader
+    if scope == 'checkpoint':
+        return loader.loadTestsFromName('BaselineTests.test_checkpoint_roundtrip_and_identity_rejections', module)
+    if scope == 'all':
+        return loader.loadTestsFromModule(module)
+    raise AuditError('未知验证范围')
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description='在执行端前台运行 CPU 合成数值验证；不读取官方数据、不运行正式训练')
     parser.add_argument('--output', type=Path, required=True, help='仓库 .local 下的新版本 JSON 报告')
+    parser.add_argument('--suite', choices=('all', 'checkpoint'), default='all',
+                        help='all运行全部5项；checkpoint只复测检查点保存与恢复')
     args = parser.parse_args(argv)
     try:
         local = Path(__file__).resolve().parent.parent / '.local'
@@ -29,7 +40,7 @@ def main(argv=None):
         check_output(args.output, [])
         report = {'schema_version': 1, 'kind': 'synthetic-baseline-runtime-check',
                   'source_sha256': source_identity(), 'python_version': platform.python_version(),
-                  'device': 'cpu', 'seed': 0, 'official_data_read': False,
+                  'device': 'cpu', 'seed': 0, 'suite': args.suite, 'official_data_read': False,
                   'formal_training_started': False, 'tests_run': 0}
         if importlib.util.find_spec('torch') is None:
             report.update(status='blocked', reason='缺少 PyTorch；请在已有模型环境的执行端运行，本机不要安装训练栈')
@@ -45,7 +56,7 @@ def main(argv=None):
         torch.set_num_threads(2)
         torch.manual_seed(0)
         torch.use_deterministic_algorithms(True)
-        suite = unittest.defaultTestLoader.loadTestsFromModule(test_baseline)
+        suite = selected_suite(test_baseline, args.suite)
         result = unittest.TextTestRunner(verbosity=2).run(suite)
         passed = result.wasSuccessful() and result.testsRun > 0 and not result.skipped
         report.update(status='passed' if passed else 'failed', tests_run=result.testsRun,
